@@ -1,7 +1,9 @@
 {
     "name": "StatControllerSample",
     "rootNamespace": "StatController.Sample",
-    "references": [],
+    "references": [
+        "GUID:3f23491a32011ff458efd409e1428f85"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

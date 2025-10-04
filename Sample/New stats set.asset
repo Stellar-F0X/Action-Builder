@@ -13,21 +13,58 @@ MonoBehaviour:
   m_Name: New stats set
   m_EditorClassIdentifier: 
   _previewKey:
-    rid: 6049053482637590720
+    rid: 6049053482637591068
   _previewStat:
-    rid: 6049053482637591051
-  _statPairs: []
+    rid: 6049053482637591055
+  _statPairs:
+  - statKey:
+      rid: 6049053482637591064
+    stat:
+      rid: 6049053482637591065
+  - statKey:
+      rid: 6049053482637591066
+    stat:
+      rid: 6049053482637591067
+  - statKey:
+      rid: 6049053482637591069
+    stat:
+      rid: 6049053482637591070
   references:
     version: 2
     RefIds:
-    - rid: 6049053482637590720
+    - rid: 6049053482637591055
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController}
+      data:
+        value: 2323133
+        _modifiers: []
+    - rid: 6049053482637591064
       type: {class: StringKey, ns: StatController.Runtime, asm: StatController}
       data:
-        key: 
-    - rid: 6049053482637591051
-      type: {class: MinMaxStat, ns: StatController.Runtime, asm: StatController}
+        key: 333
+    - rid: 6049053482637591065
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController}
       data:
-        value: 0
+        value: 33333
         _modifiers: []
-        min: 0
-        max: 0
+    - rid: 6049053482637591066
+      type: {class: StringKey, ns: StatController.Runtime, asm: StatController}
+      data:
+        key: 3323123232
+    - rid: 6049053482637591067
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController}
+      data:
+        value: 2323133
+        _modifiers: []
+    - rid: 6049053482637591068
+      type: {class: EnumKey, ns: StatController.Sample, asm: StatControllerSample}
+      data:
+        _key: 1
+    - rid: 6049053482637591069
+      type: {class: EnumKey, ns: StatController.Sample, asm: StatControllerSample}
+      data:
+        _key: 5
+    - rid: 6049053482637591070
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController}
+      data:
+        value: 2323133
+        _modifiers: []
