@@ -9,7 +9,7 @@ using UnityEngine.Assertions;
 
 namespace StatController.Tool
 {
-    [CustomEditor(typeof(StatsSet))]
+    [CustomEditor(typeof(StatsSet<>), true)]
     public class StatDictionaryDrawer : Editor
     {
         // 클래스 파일의 인스펙터에 등록되어, 주입됨
@@ -34,11 +34,9 @@ namespace StatController.Tool
             _rootVisualElement.Bind(serializedObject);
 
             Button addButton = _rootVisualElement.Q<Button>("add-button");
-            Button keyBindButton = _rootVisualElement.Q<Button>("key-bind-button");
             Button valueBindButton = _rootVisualElement.Q<Button>("value-bind-button");
 
             addButton.clicked += this.AddButtonOnClicked;
-            keyBindButton.clickable.clickedWithEventInfo += this.OnClickedBindKeyButton;
             valueBindButton.clickable.clickedWithEventInfo += this.OnClickedBindValueButton;
 
             _imguiContainer = _rootVisualElement.Q<IMGUIContainer>("element-container");
@@ -77,18 +75,20 @@ namespace StatController.Tool
 
             const float btnWidth = 20; //button width
             
-            float width = rect.width * 0.5f;
+            float keyWidth = rect.width * 0.35f;
+            float valueWidth = rect.width * 0.65f;
             float halfBtnWidth = btnWidth * 0.5f;
 
-            Rect keyRect = new Rect(rect.x, rect.y, width - halfBtnWidth, rect.height);
-            Rect valueRect = new Rect(rect.x + keyRect.width, rect.y, width - halfBtnWidth, rect.height);
+            Rect keyRect = new Rect(rect.x, rect.y, keyWidth - halfBtnWidth - 3, rect.height);
+            Rect valueRect = new Rect(rect.x + keyRect.width + 3, rect.y, valueWidth - halfBtnWidth, rect.height);
             Rect buttonRect = new Rect(valueRect.x + valueRect.width + 3, rect.y, btnWidth, rect.height);
 
-            //C# 8.0 이상에서 도입된 using declaration 문법으로 Scope가 끝날 때까지 유효.
+            //C# 8.0 이상에서 도입된 using declaration 문법으로 Scope가 끝날 때까지 유효. 
+            //영역이 지정되어 있어 문제 소지가 있어보이므로 이 문법은 자제하는 게 좋을 것 같긴 함.
             using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
-            
-            EditorGUI.PropertyField(keyRect, keyProp, true);
-            EditorGUI.PropertyField(valueRect, valueProp, true);
+
+            EditorGUI.PropertyField(keyRect, keyProp, GUIContent.none, true);
+            EditorGUI.PropertyField(valueRect, valueProp, new GUIContent("Stat Data"), true);
 
             if (GUI.Button(buttonRect, EditorGUIUtility.IconContent("CrossIcon")))
             {
@@ -132,10 +132,10 @@ namespace StatController.Tool
 
         private void AddButtonOnClicked()
         {
-            IStatKey key = _previewStatKeyProp.managedReferenceValue as IStatKey;
             Stat stat = _previewStatProp.managedReferenceValue as Stat;
+            Type keyType = _previewStatKeyProp?.boxedValue?.GetType();
 
-            Assert.IsNotNull(key);
+            Assert.IsNotNull(keyType);
             Assert.IsNotNull(stat);
 
             int arraySize = _statListProp.arraySize;
@@ -145,7 +145,7 @@ namespace StatController.Tool
             SerializedProperty prop = _statListProp.GetArrayElementAtIndex(arraySize);
             Assert.IsNotNull(prop);
 
-            IStatKey clonedKey = key.Clone();
+            object clonedKey = TypeUtility.CreateInstance(keyType);
             Assert.IsNotNull(clonedKey);
             Stat clonedStat = stat.Clone() as Stat;
             Assert.IsNotNull(clonedStat);
@@ -155,25 +155,11 @@ namespace StatController.Tool
             SerializedProperty valueProp = prop.FindPropertyRelative("stat");
             Assert.IsNotNull(valueProp);
 
-            keyProp.managedReferenceValue = clonedKey;
+            keyProp.boxedValue = clonedKey;
             valueProp.managedReferenceValue = clonedStat;
             
             serializedObject.ApplyModifiedProperties();
             serializedObject.Update();
-        }
-
-
-        private void OnClickedBindKeyButton(EventBase clickEvent)
-        {
-            BindingWindow window = BindingWindowBuilder.GetBuilder("Stat Key")
-                                                       .AddFactoryModule(
-                                                           () => new StatKeyFactoryModule("Stat Keys"),
-                                                           () => new TypeTreeProvider(true))
-                                                       .Build();
-
-            window.RegisterCreationCallbackOnce((Action<IStatKey>)(s => this.ApplyPreview(_previewStatKeyProp, s)));
-
-            window.OpenWindow(clickEvent.originalMousePosition);
         }
 
 
@@ -191,7 +177,7 @@ namespace StatController.Tool
         }
 
 
-        private void ApplyPreview<T>(SerializedProperty property, T data)
+        private void ApplyPreview(SerializedProperty property, Stat data)
         {
             Assert.IsNotNull(property);
             Assert.IsNotNull(serializedObject);

@@ -1,49 +1,45 @@
-using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
-[assembly: InternalsVisibleTo("StatController.Tool")]
 namespace StatController.Runtime
 {
-    [CreateAssetMenu(fileName = "New stats set", menuName = "Stat set")]
-    public class StatsSet : ScriptableObject
+    public abstract class StatsSet : ScriptableObject
     {
-#if UNITY_EDITOR
-        [SerializeReference]
-        private protected IStatKey _previewKey;
-        
-        [SerializeReference]
-        private protected Stat _previewStat;
-#endif
-        
-        [SerializeField]
-        private List<StatPair> _statPairs;
-
-
-        internal List<StatPair> statPairs
-        {
-            get { return _statPairs; }
-        }
-        
-        
         //TODO: ToJson 구현
-        public string ToJson()
+        public virtual string ToJson()
         {
             return string.Empty;
         }
         
         
         //TODO: ToXml 구현
-        public string ToXml()
+        public virtual string ToXml()
         {
             return string.Empty;
         }
 
 
-        public StatsSetInstance CreateInstance()
+        public abstract StatsSetInstance CreateInstance();
+    }
+    
+    
+    public class StatsSet<TKey> : StatsSet
+    {
+#if UNITY_EDITOR
+        [SerializeField]
+        private protected TKey _previewKey;
+        
+        [SerializeReference]
+        private protected Stat _previewStat;
+#endif
+        
+        [SerializeField]
+        protected List<StatPair<TKey>> _statPairs;
+
+
+        public override StatsSetInstance CreateInstance()
         {
-            StatsSetInstance instance = new StatsSetInstance();
+            StatsSetInstance<TKey> instance = new StatsSetInstance<TKey>();
 
             if (_statPairs.Count == 0)
             {

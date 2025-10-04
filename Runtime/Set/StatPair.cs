@@ -4,16 +4,16 @@ using UnityEngine;
 namespace StatController.Runtime
 {
     [Serializable]
-    internal struct StatPair
+    public struct StatPair<TKey>
     {
-        public StatPair(IStatKey key, Stat stat)
+        public StatPair(TKey key, Stat stat)
         {
             this.statKey = key;
             this.stat = stat;
         }
         
         [SerializeReference]
-        public IStatKey statKey; 
+        public TKey statKey; 
         
         [SerializeReference]
         public Stat stat; 

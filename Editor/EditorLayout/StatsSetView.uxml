@@ -6,9 +6,6 @@
             <ui:Button name="add-button" icon-image="project://database/Assets/Stat-Controller/Editor/EditorLayout/Add.png?fileID=2800000&amp;guid=80311de3d13fbfc48983f393c313696d&amp;type=3#Add" style="border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 1px; border-left-color: rgb(36, 36, 36); -unity-font-style: bold;" />
         </ui:VisualElement>
         <ui:VisualElement name="element-preview" style="flex-grow: 1; flex-direction: row; height: auto; min-height: initial; max-height: initial; margin-left: 0; margin-right: 0; background-color: rgba(88, 88, 88, 0.28); border-top-width: 0; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); margin-top: 0; margin-bottom: 0;">
-            <ui:Button name="key-bind-button" class="bind-button" />
-            <uie:PropertyField name="key-field" binding-path="_previewKey" label="Preview Key" class="property-field" />
-            <ui:VisualElement name="divider" style="flex-grow: 0; border-right-width: 1px; border-left-color: rgb(36, 36, 36); border-right-color: rgb(36, 36, 36); border-top-color: rgb(36, 36, 36); border-bottom-color: rgb(36, 36, 36);" />
             <ui:Button name="value-bind-button" class="bind-button" />
             <uie:PropertyField name="value-field" binding-path="_previewStat" class="property-field" style="border-right-width: 0;" />
         </ui:VisualElement>
