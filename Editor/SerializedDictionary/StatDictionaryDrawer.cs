@@ -75,24 +75,31 @@ namespace StatController.Tool
             SerializedProperty valueProp = property.FindPropertyRelative("stat");
             Assert.IsNotNull(valueProp);
 
-            const float btnWidth = 15; //button width
+            const float btnWidth = 20; //button width
             
-            float width = rect.width * 0.5f - btnWidth;
+            float width = rect.width * 0.5f;
+            float halfBtnWidth = btnWidth * 0.5f;
 
-            Rect keyRect = new Rect(rect.x, rect.y, width, rect.height);
-            Rect valueRect = new Rect(rect.x + width, rect.y, width, rect.height);
-            Rect buttonRect = new Rect(rect.x + width * 2, rect.y, btnWidth * 2, rect.height);
+            Rect keyRect = new Rect(rect.x, rect.y, width - halfBtnWidth, rect.height);
+            Rect valueRect = new Rect(rect.x + keyRect.width, rect.y, width - halfBtnWidth, rect.height);
+            Rect buttonRect = new Rect(valueRect.x + valueRect.width + 3, rect.y, btnWidth, rect.height);
 
+            //C# 8.0 이상에서 도입된 using declaration 문법으로 Scope가 끝날 때까지 유효.
+            using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
+            
             EditorGUI.PropertyField(keyRect, keyProp, true);
             EditorGUI.PropertyField(valueRect, valueProp, true);
 
-            if (GUI.Button(buttonRect, "X"))
+            if (GUI.Button(buttonRect, EditorGUIUtility.IconContent("CrossIcon")))
             {
                 _statListProp.DeleteArrayElementAtIndex(index);
             }
 
-            serializedObject.ApplyModifiedProperties();
-            serializedObject.Update();
+            if (check.changed)
+            {
+                serializedObject.ApplyModifiedProperties();
+                serializedObject.Update();
+            }
         }
 
 
@@ -138,7 +145,7 @@ namespace StatController.Tool
             SerializedProperty prop = _statListProp.GetArrayElementAtIndex(arraySize);
             Assert.IsNotNull(prop);
 
-            IStatKey clonedKey = key;
+            IStatKey clonedKey = key.Clone();
             Assert.IsNotNull(clonedKey);
             Stat clonedStat = stat.Clone() as Stat;
             Assert.IsNotNull(clonedStat);

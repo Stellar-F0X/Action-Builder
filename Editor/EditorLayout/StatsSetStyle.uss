@@ -90,9 +90,3 @@
 #value-field Foldout > VisualElement {
     margin-left: 5px;
 }
-
-#container > #element-container > .unity-foldout > .unity-foldout__toggle {
-    margin-left: 0;
-    padding-left: 3px;
-    background-color: rgb(88, 88, 88);
-}
