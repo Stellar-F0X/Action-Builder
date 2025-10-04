@@ -12,7 +12,6 @@ namespace StatController.Runtime
 
     public interface IStatKey<T> : IStatKey
     {
-        public T key { get; internal set; }
-        
+        public T key { get; set; }
     }
 }
