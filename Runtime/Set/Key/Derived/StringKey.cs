@@ -15,8 +15,7 @@ namespace StatController.Runtime
         
         object IStatKey.boxedKeyObject
         {
-            get => _boxedKeyObject;
-            set => _boxedKeyObject = value;
+            get => this.key;
         }
 
         string IStatKey<string>.key
@@ -24,8 +23,8 @@ namespace StatController.Runtime
             get => key;
             set => key = value;
         }
-        
-        
+
+
         public bool Equals(IStatKey other)
         {
             if (other is not StringKey)
@@ -37,6 +36,14 @@ namespace StatController.Runtime
             int result = string.Compare(stringKey, this.key);
             
             return result == _EQUAL_VALUE;
+        }
+        
+        
+        public IStatKey Clone()
+        {
+            StringKey newKey = new StringKey();
+            newKey.key = this.key.Clone() as string;
+            return newKey;
         }
     }
 }

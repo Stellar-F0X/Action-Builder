@@ -31,7 +31,7 @@ namespace StatController.Runtime
 
         public int GetHashCode(IStatKey obj)
         {
-            return (obj.boxedKeyObject != null ? obj.boxedKeyObject.GetHashCode() : 0);
+            return obj.boxedKeyObject != null ? obj.boxedKeyObject.GetHashCode() : 0;
         }
     }
 }

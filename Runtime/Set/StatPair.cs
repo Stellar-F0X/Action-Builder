@@ -4,7 +4,7 @@ using UnityEngine;
 namespace StatController.Runtime
 {
     [Serializable]
-    public struct StatPair
+    internal struct StatPair
     {
         public StatPair(IStatKey key, Stat stat)
         {

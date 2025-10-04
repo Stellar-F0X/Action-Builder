@@ -21,7 +21,7 @@ namespace StatController.Runtime
         private List<StatPair> _statPairs;
 
 
-        public List<StatPair> statPairs
+        internal List<StatPair> statPairs
         {
             get { return _statPairs; }
         }
