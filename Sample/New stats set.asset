@@ -13,22 +13,10 @@ MonoBehaviour:
   m_Name: New stats set
   m_EditorClassIdentifier: 
   _previewKey:
-    rid: 6049053482637591068
+    rid: 6049053485967867995
   _previewStat:
     rid: 6049053482637591055
-  _statPairs:
-  - statKey:
-      rid: 6049053482637591064
-    stat:
-      rid: 6049053482637591065
-  - statKey:
-      rid: 6049053482637591066
-    stat:
-      rid: 6049053482637591067
-  - statKey:
-      rid: 6049053482637591069
-    stat:
-      rid: 6049053482637591070
+  _statPairs: []
   references:
     version: 2
     RefIds:
@@ -37,34 +25,7 @@ MonoBehaviour:
       data:
         value: 2323133
         _modifiers: []
-    - rid: 6049053482637591064
-      type: {class: StringKey, ns: StatController.Runtime, asm: StatController}
-      data:
-        key: 333
-    - rid: 6049053482637591065
-      type: {class: Stat, ns: StatController.Runtime, asm: StatController}
-      data:
-        value: 33333
-        _modifiers: []
-    - rid: 6049053482637591066
-      type: {class: StringKey, ns: StatController.Runtime, asm: StatController}
-      data:
-        key: 3323123232
-    - rid: 6049053482637591067
-      type: {class: Stat, ns: StatController.Runtime, asm: StatController}
-      data:
-        value: 2323133
-        _modifiers: []
-    - rid: 6049053482637591068
+    - rid: 6049053485967867995
       type: {class: EnumKey, ns: StatController.Sample, asm: StatControllerSample}
       data:
-        _key: 1
-    - rid: 6049053482637591069
-      type: {class: EnumKey, ns: StatController.Sample, asm: StatControllerSample}
-      data:
-        _key: 5
-    - rid: 6049053482637591070
-      type: {class: Stat, ns: StatController.Runtime, asm: StatController}
-      data:
-        value: 2323133
-        _modifiers: []
+        _key: 0

@@ -1,12 +1,10 @@
 {
-    "name": "StatControllerSample",
-    "rootNamespace": "StatController.Sample",
-    "references": [
-        "GUID:3f23491a32011ff458efd409e1428f85"
-    ],
+    "name": "StatController.Runtime",
+    "rootNamespace": "StatController.Runtime",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
