@@ -19,7 +19,7 @@ namespace StatController.Runtime
         }
 
 
-        public abstract StatsSetInstance CreateInstance();
+        internal abstract StatsSetInstance CreateInstance();
     }
     
     
@@ -37,18 +37,13 @@ namespace StatController.Runtime
         protected List<StatPair<TKey>> _statPairs;
 
 
-        public override StatsSetInstance CreateInstance()
+        internal override StatsSetInstance CreateInstance()
         {
             StatsSetInstance<TKey> instance = new StatsSetInstance<TKey>();
-
-            if (_statPairs.Count == 0)
-            {
-                return instance;
-            }
-
+            
             for (int index = 0; index < _statPairs.Count; ++index)
             {
-                instance.AddStat(_statPairs[index].statKey, _statPairs[index].stat);
+                instance.stats.Add(_statPairs[index].statKey, _statPairs[index].stat);
             }
 
             return instance;

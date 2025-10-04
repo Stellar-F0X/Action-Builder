@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 024c88fcd4f54a0ab1e22e138c3ce3cb, type: 3}
+  m_Name: Sample stats set 2
+  m_EditorClassIdentifier: 
+  _previewKey: 
+  _previewStat:
+    rid: 6049053487371124893
+  _statPairs:
+  - statKey: 
+    stat:
+      rid: 6049053487371124894
+  references:
+    version: 2
+    RefIds:
+    - rid: 6049053487371124893
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController.Runtime}
+      data:
+        value: 0
+        _modifiers: []
+    - rid: 6049053487371124894
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController.Runtime}
+      data:
+        value: 0
+        _modifiers: []
