@@ -79,7 +79,7 @@ namespace StatController.Tool
             float valueWidth = rect.width * 0.65f;
             float halfBtnWidth = btnWidth * 0.5f;
 
-            Rect keyRect = new Rect(rect.x, rect.y, keyWidth - halfBtnWidth - 3, rect.height);
+            Rect keyRect = new Rect(rect.x, rect.y + 2, keyWidth - halfBtnWidth - 3, rect.height);
             Rect valueRect = new Rect(rect.x + keyRect.width + 3, rect.y, valueWidth - halfBtnWidth, rect.height);
             Rect buttonRect = new Rect(valueRect.x + valueRect.width + 3, rect.y, btnWidth, rect.height);
 
