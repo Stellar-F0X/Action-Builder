@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -8,12 +10,14 @@ namespace StatController.Tool
 {
     public class TypeTreeProvider : ICategoryTreeProvider
     {
-        public TypeTreeProvider(bool bindSubClassTypes)
+        public TypeTreeProvider(bool bindSubClassTypes, bool includeBaseType = false)
         {
             this._bindSubClassTypes = bindSubClassTypes;
+            this._includeBaseType = includeBaseType;
         }
 
-        
+
+        private readonly bool _includeBaseType;
         private readonly bool _bindSubClassTypes;
 
 
@@ -39,20 +43,32 @@ namespace StatController.Tool
 
         private Type[] GetTypes(FactoryModule module)
         {
+            if (this._bindSubClassTypes == false)
+            {
+                return new Type[1] { module.targetType };
+            }
+
+            List<Type> typeList = TypeCache.GetTypesDerivedFrom(module.targetType).ToList();
+
+            if (this._includeBaseType)
+            {
+                typeList.Insert(0, module.targetType);
+            }
+            
             if (this._bindSubClassTypes)
             {
-                return this.OrderByNameAndFilterAbstracts(TypeCache.GetTypesDerivedFrom(module.targetType));
+                return this.OrderByNameAndFilterAbstracts(typeList);
             }
             else
             {
-                return new Type[1] { module.targetType };
+                return Array.Empty<Type>();
             }
         }
 
 
-        private Type[] OrderByNameAndFilterAbstracts(TypeCache.TypeCollection collection)
+        private Type[] OrderByNameAndFilterAbstracts(List<Type> collection)
         {
-            Type[] array = collection.Where(t => t.IsAbstract || t.IsGenericType).ToArray();
+            Type[] array = collection.Where(t => t.IsAbstract == false && t.IsGenericType == false).ToArray();
 
             if (array.Length <= 1)
             {

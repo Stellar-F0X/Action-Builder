@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace StatController.Runtime
 {
@@ -9,7 +10,7 @@ namespace StatController.Runtime
         
         private object _boxedKeyObject;
         
-        private string _key;
+        public string key;
         
         
         object IStatKey.boxedKeyObject
@@ -20,8 +21,8 @@ namespace StatController.Runtime
 
         string IStatKey<string>.key
         {
-            get => _key;
-            set => _key = value;
+            get => key;
+            set => key = value;
         }
         
         
@@ -32,8 +33,8 @@ namespace StatController.Runtime
                 return false;
             } 
             
-            string stringKey = ((StringKey)other)._key;
-            int result = string.Compare(stringKey, this._key);
+            string stringKey = ((StringKey)other).key;
+            int result = string.Compare(stringKey, this.key);
             
             return result == _EQUAL_VALUE;
         }

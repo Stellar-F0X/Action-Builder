@@ -1,17 +1,30 @@
+using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Assertions;
 
+[assembly: InternalsVisibleTo("StatController.Tool")]
 namespace StatController.Runtime
 {
     [CreateAssetMenu(fileName = "New stats set", menuName = "Stat set")]
     public class StatsSet : ScriptableObject
     {
+#if UNITY_EDITOR
         [SerializeReference]
-        private List<IStatKey> _statKeys; 
+        private protected IStatKey _previewKey;
         
         [SerializeReference]
-        private List<Stat> _stats; 
+        private protected Stat _previewStat;
+#endif
+        
+        [SerializeField]
+        private List<StatPair> _statPairs;
+
+
+        public List<StatPair> statPairs
+        {
+            get { return _statPairs; }
+        }
         
         
         //TODO: ToJson 구현
@@ -30,17 +43,16 @@ namespace StatController.Runtime
 
         public StatsSetInstance CreateInstance()
         {
-            Assert.IsTrue(_statKeys.Count == _stats.Count);
             StatsSetInstance instance = new StatsSetInstance();
 
-            if (_statKeys.Count == 0)
+            if (_statPairs.Count == 0)
             {
                 return instance;
             }
 
-            for (int index = 0; index < _statKeys.Count; ++index)
+            for (int index = 0; index < _statPairs.Count; ++index)
             {
-                instance.AddStat(_statKeys[index], _stats[index]);
+                instance.AddStat(_statPairs[index].statKey, _statPairs[index].stat);
             }
 
             return instance;

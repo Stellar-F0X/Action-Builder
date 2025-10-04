@@ -7,7 +7,7 @@ namespace StatController.Tool
 {
     public class StatKeyFactoryModule : FactoryModule<IStatKey>
     {
-        public StatKeyFactoryModule(string title, bool useCallback = false, int layer = 1) : base(typeof(IStatKey), title, useCallback, layer) { }
+        public StatKeyFactoryModule(string title, int layer = 1) : base(typeof(IStatKey), title, layer) { }
         
         protected override IStatKey Create(Type type, Vector2 position, string entryName)
         {

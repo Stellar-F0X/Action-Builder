@@ -1,0 +1,98 @@
+.bind-button {
+    width: 15px;
+    height: 18px;
+    background-color: rgb(88, 88, 88);
+    background-image: url("project://database/Packages/com.unity.inputsystem/InputSystem/Editor/Icons/d_Add%20Binding@3x.png?fileID=2800000&guid=ca933a91c81734ddd88b17c8481ec1e9&type=3#d_Add Binding@3x");
+    padding-top: 1px;
+    padding-right: 8px;
+    padding-bottom: 1px;
+    padding-left: 8px;
+    margin-top: 1px;
+    margin-right: 3px;
+    margin-bottom: 1px;
+    margin-left: 3px;
+}
+
+.property-field {
+    background-color: rgba(255, 255, 255, 0.04);
+    flex-grow: 1;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 3px;
+    margin-left: 0;
+    padding-top: 1px;
+    padding-right: 6px;
+    padding-bottom: 1px;
+    padding-left: 0;
+}
+
+#key-field Toggle {
+    margin-left: 3px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    background-color: rgba(36, 36, 36, 0.47);
+    padding-top: 1px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    border-left-color: rgb(50, 50, 50);
+    border-right-color: rgb(50, 50, 50);
+    border-top-color: rgb(50, 50, 50);
+    border-bottom-color: rgb(50, 50, 50);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+}
+
+#key-field Label {
+    min-width: auto;
+    max-width: 80px;
+    display: flex;
+    visibility: visible;
+    overflow: visible;
+    flex-grow: 1;
+}
+
+#key-field Foldout > VisualElement {
+    margin-left: 5px;
+}
+
+#value-field Toggle {
+    margin-left: 3px;
+    background-color: rgba(36, 36, 36, 0.47);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    padding-top: 1px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-left-color: rgb(50, 50, 50);
+    border-right-color: rgb(50, 50, 50);
+    border-top-color: rgb(50, 50, 50);
+    border-bottom-color: rgb(50, 50, 50);
+}
+
+#value-field Label {
+    flex-grow: 1;
+    min-width: auto;
+    max-width: 80px;
+}
+
+#value-field Foldout > VisualElement {
+    margin-left: 5px;
+}
+
+#container > #element-container > .unity-foldout > .unity-foldout__toggle {
+    margin-left: 0;
+    padding-left: 3px;
+    background-color: rgb(88, 88, 88);
+}

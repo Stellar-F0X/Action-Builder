@@ -46,27 +46,19 @@ namespace StatController.Tool
 
     public abstract class FactoryModule<T> : FactoryModule
     {
-        protected FactoryModule(Type targetType, string title, bool useCallback = false, int layer = 1) : base(targetType, title, layer)
+        protected FactoryModule(Type targetType, string title, int layer = 1) : base(targetType, title, layer)
         {
             base.onTryCreate = this.ExecuteCreateActions;
-            this._useCallback = useCallback;
         }
-
-
-        private readonly bool _useCallback;
 
 
         private void ExecuteCreateActions(Type childType, Vector2 position, string entryName, Delegate createAction)
         {
             this.BeforeCreate(childType, position);
-
+            
             T creation = this.Create(childType, position, entryName);
-
-            if (this._useCallback)
-            {
-                createAction?.DynamicInvoke(creation);
-            }
-
+            createAction?.DynamicInvoke(creation);
+            
             this.AfterCreate(creation);
         }
 
