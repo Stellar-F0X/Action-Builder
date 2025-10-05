@@ -15,6 +15,8 @@ namespace StatController.Tool
         // 클래스 파일의 인스펙터에 등록되어, 주입됨
         public VisualTreeAsset visualTreeAsset;
 
+        private StatsSet _statsSet;
+        
         private SerializedProperty _previewStatKeyProp;
         private SerializedProperty _previewStatProp;
         private SerializedProperty _statListProp;
@@ -23,9 +25,14 @@ namespace StatController.Tool
         private IMGUIContainer _imguiContainer;
         private ReorderableList _statListView;
 
+        private readonly string _ERROR_MESSAGE = "Key is already included.";
+
 
         public override VisualElement CreateInspectorGUI()
         {
+            _statsSet = (StatsSet)target;
+            Assert.IsNotNull(_statsSet);
+            
             _previewStatKeyProp = serializedObject.FindProperty("_previewKey");
             _previewStatProp = serializedObject.FindProperty("_previewStat");
             _statListProp = serializedObject.FindProperty("_statPairs");
@@ -42,6 +49,32 @@ namespace StatController.Tool
             _imguiContainer = _rootVisualElement.Q<IMGUIContainer>("element-container");
             _imguiContainer.onGUIHandler += this.OnGUIHandler;
             return _rootVisualElement;
+        }
+        
+        
+        private bool IsKeyDuplicatedExcludingIndex(object keyValue, int excludeIndex)
+        {
+            Assert.IsNotNull(_statListProp);
+            Assert.IsNotNull(keyValue);
+            
+            for (int i = 0; i < _statListProp.arraySize; i++)
+            {
+                // 현재 수정 중인 인덱스는 제외
+                if (i == excludeIndex)
+                {
+                    continue;
+                }
+                
+                SerializedProperty otherProperty = _statListProp.GetArrayElementAtIndex(i);
+                SerializedProperty otherKeyProp = otherProperty.FindPropertyRelative("statKey");
+                
+                if (otherKeyProp.boxedValue != null && otherKeyProp.boxedValue.Equals(keyValue))
+                {
+                    return true; // 중복 발견
+                }
+            }
+            
+            return false; // 중복 없음
         }
 
 
@@ -66,6 +99,8 @@ namespace StatController.Tool
                 return;
             }
             
+            serializedObject.Update();
+            
             SerializedProperty property = _statListProp.GetArrayElementAtIndex(index);
             Assert.IsNotNull(property);
             SerializedProperty keyProp = property.FindPropertyRelative("statKey");
@@ -83,8 +118,9 @@ namespace StatController.Tool
             Rect valueRect = new Rect(rect.x + keyRect.width + 3, rect.y, valueWidth - halfBtnWidth, rect.height);
             Rect buttonRect = new Rect(valueRect.x + valueRect.width + 3, rect.y, btnWidth, rect.height);
 
-            //C# 8.0 이상에서 도입된 using declaration 문법으로 Scope가 끝날 때까지 유효. 
-            //영역이 지정되어 있어 문제 소지가 있어보이므로 이 문법은 자제하는 게 좋을 것 같긴 함.
+            // 키 값 변경 전 이전 값을 저장
+            object previousKeyValue = keyProp.boxedValue;
+            
             using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
 
             EditorGUI.PropertyField(keyRect, keyProp, GUIContent.none, true);
@@ -93,13 +129,30 @@ namespace StatController.Tool
             if (GUI.Button(buttonRect, EditorGUIUtility.IconContent("CrossIcon")))
             {
                 _statListProp.DeleteArrayElementAtIndex(index);
+                serializedObject.ApplyModifiedProperties();
+                return; //삭제됐다면 여기서 빠른 종료.
             }
 
-            if (check.changed)
+            //변경사항이 없다면 빠른 종료.
+            if (check.changed == false)
             {
-                serializedObject.ApplyModifiedProperties();
-                serializedObject.Update();
+                return;
             }
+
+            //변경사항이 있다면 중복 키를 검사한다.
+            object newKeyValue = keyProp.boxedValue;
+                
+            if (this.IsKeyDuplicatedExcludingIndex(newKeyValue, index))
+            {
+                keyProp.boxedValue = previousKeyValue;
+                _rootVisualElement.Add(new HelpBox(_ERROR_MESSAGE, HelpBoxMessageType.Error));
+            }
+            else
+            {
+                _rootVisualElement.Query<HelpBox>().ForEach(hb => hb.RemoveFromHierarchy());
+            }
+                
+            serializedObject.ApplyModifiedProperties();
         }
 
 
@@ -132,8 +185,9 @@ namespace StatController.Tool
 
         private void AddButtonOnClicked()
         {
+            Type keyType = target.GetType().BaseType?.GenericTypeArguments[0];
             Stat stat = _previewStatProp.managedReferenceValue as Stat;
-            Type keyType = _previewStatKeyProp?.boxedValue?.GetType();
+            object value = _previewStatKeyProp.boxedValue;
 
             Assert.IsNotNull(keyType);
             Assert.IsNotNull(stat);
@@ -145,7 +199,19 @@ namespace StatController.Tool
             SerializedProperty prop = _statListProp.GetArrayElementAtIndex(arraySize);
             Assert.IsNotNull(prop);
 
-            object clonedKey = TypeUtility.CreateInstance(keyType);
+            object clonedKey = TypeUtility.CreateInstance(keyType, value);
+            bool contained = _statsSet.ContainsKey(clonedKey);
+
+            if (contained)
+            {
+                _rootVisualElement.Add(new HelpBox(_ERROR_MESSAGE, HelpBoxMessageType.Error));
+                return;
+            }
+            else
+            {
+                _rootVisualElement.Query<HelpBox>().ForEach(hb => hb.RemoveFromHierarchy());
+            }
+            
             Assert.IsNotNull(clonedKey);
             Stat clonedStat = stat.Clone() as Stat;
             Assert.IsNotNull(clonedStat);

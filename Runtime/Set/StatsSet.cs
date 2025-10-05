@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace StatController.Runtime
 {
@@ -19,6 +21,8 @@ namespace StatController.Runtime
         }
 
 
+        public abstract bool ContainsKey(object key);
+
         internal abstract StatsSetInstance CreateInstance();
     }
     
@@ -36,6 +40,17 @@ namespace StatController.Runtime
         [SerializeField]
         protected List<StatPair<TKey>> _statPairs;
 
+
+        public override bool ContainsKey(object key)
+        {
+            EqualityComparer<TKey> comparer = EqualityComparer<TKey>.Default;
+            Assert.IsNotNull(comparer, "comparer is null");
+
+            TKey convertedKey = (TKey)key;
+
+            return _statPairs.Any(s => comparer.Equals(s.statKey, convertedKey));
+        }
+        
 
         internal override StatsSetInstance CreateInstance()
         {

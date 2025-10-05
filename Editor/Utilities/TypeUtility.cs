@@ -4,16 +4,17 @@ namespace StatController.Tool
 {
     public class TypeUtility
     {
-        public static object CreateInstance(Type type)
+        public static object CreateInstance(Type type, object param)
         {
             if (type.IsEnum)
             {
-                return Enum.GetValues(type).GetValue(0);
+                return Enum.Parse(type, param.ToString());
             }
 
             if (type == typeof(string))
             {
-                return string.Empty;
+                string result = (string)param;
+                return string.IsNullOrEmpty(result) ? string.Empty : result;
             }
             else
             {

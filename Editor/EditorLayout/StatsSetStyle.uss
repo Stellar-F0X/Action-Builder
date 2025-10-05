@@ -26,38 +26,11 @@
     padding-left: 1px;
 }
 
-#key-field Toggle {
-    margin-left: 3px;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    border-bottom-left-radius: 3px;
-    background-color: rgba(36, 36, 36, 0.47);
-    padding-top: 1px;
-    padding-right: 2px;
-    padding-bottom: 2px;
-    padding-left: 2px;
-    border-left-color: rgb(50, 50, 50);
-    border-right-color: rgb(50, 50, 50);
-    border-top-color: rgb(50, 50, 50);
-    border-bottom-color: rgb(50, 50, 50);
-    border-top-width: 1px;
-    border-right-width: 1px;
-    border-bottom-width: 1px;
-    border-left-width: 1px;
-}
-
 #key-field Label {
-    min-width: auto;
-    max-width: 80px;
     display: flex;
-    visibility: visible;
-    overflow: visible;
-    flex-grow: 1;
-}
-
-#key-field Foldout > VisualElement {
-    margin-left: 5px;
+    width: 0;
+    min-width: 0;
+    max-width: 0;
 }
 
 #value-field Toggle {
