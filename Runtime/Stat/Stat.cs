@@ -9,65 +9,106 @@ namespace StatController.Runtime
     [Serializable]
     public class Stat : ICloneable
     {
+        [SerializeField, ReadOnly]
+        protected float _finalValue;
+
         [SerializeField]
-        protected float _value;
+        protected float _baseValue;
+        protected bool _changedModifiers = true; //최초 한 번만.
 
         [SerializeReference, ReadOnly]
-        private List<IStatModifier> _modifiers = new List<IStatModifier>();
+        private List<StatModifierBase> _modifiers = new List<StatModifierBase>();
 
 
         public virtual float value
         {
-            get { return _value; }
-            set { _value = value; }
-        }
-
-        public IReadOnlyList<IStatModifier> modifiers
-        {
-            get { return _modifiers; }
-        }
-
-
-        public void AddModifiers(IStatModifier[] modifier)
-        {
-            _modifiers.AddRange(modifier);
-        }
-
-
-        public void AddModifier(IStatModifier modifier)
-        {
-            _modifiers.Add(modifier);
-        }
-
-
-        public bool RemoveModifier(IStatModifier modifier)
-        {
-            return _modifiers.Remove(modifier);
-        }
-
-
-        public bool RemoveModifier(string identity)
-        {
-            return _modifiers.Remove(_modifiers.Find(m => string.Compare(m.identity, identity) == 0));
-        }
-
-
-        protected virtual void ApplyModifiers()
-        {
-            _modifiers.Sort(this.DetermineModifierPriority);
-
-            float currentValue = this.value;
-
-            for (int i = 0; i < _modifiers.Count; ++i)
+            get
             {
-                currentValue = _modifiers[i].Calculate(currentValue);
+                if (this._changedModifiers)
+                {
+                    this._changedModifiers = false;
+                    this.value = this.TryApplyModifiers();
+                }
+
+                return this._finalValue;
             }
 
-            this.value = currentValue;
+            set
+            {
+                this._finalValue = value;
+            }
         }
 
 
-        protected virtual int DetermineModifierPriority(IStatModifier l, IStatModifier r)
+        protected virtual float TryApplyModifiers()
+        {
+            if (_modifiers.Count > 1)
+            {
+                _modifiers.Sort(this.DetermineModifierPriority);
+            }
+            
+            float currentValue = this._baseValue;
+
+            for (int index = 0; index < _modifiers.Count; index++)
+            {
+                StatModifierBase modifier = _modifiers[index];
+                currentValue = modifier.Calculate(currentValue);
+            }
+
+            return currentValue;
+        }
+
+
+        public void AddModifiers(StatModifierBase[] modifier)
+        {
+            _modifiers.AddRange(modifier);
+            _changedModifiers = true;
+        }
+
+
+        public void AddModifier(StatModifierBase modifier)
+        {
+            _modifiers.Add(modifier);
+            _changedModifiers = true;
+        }
+
+
+        public bool RemoveModifier(StatModifierBase modifier)
+        {
+            _changedModifiers = _modifiers.Remove(modifier);
+            return _changedModifiers;
+        }
+
+
+        public bool RemoveModifier(string name)
+        {
+            StatModifierBase modifier = _modifiers?.Find(m => m.name == name);
+
+            if (string.IsNullOrEmpty(modifier?.name) || string.Compare(modifier.name, name) != 0)
+            {
+                return false;
+            }
+            else
+            {
+                return this.RemoveModifier(modifier);
+            }
+        }
+
+
+        public IReadOnlyList<StatModifierBase> GetModifiers(Func<float, bool> condition = null)
+        {
+            if (condition is null)
+            {
+                return _modifiers;
+            }
+            else
+            {
+                return _modifiers.Where(m => condition.Invoke(m.rightOperand)).ToList();
+            }
+        }
+
+
+        private int DetermineModifierPriority(StatModifierBase l, StatModifierBase r)
         {
             if (l.priority != r.priority)
             {
@@ -75,22 +116,7 @@ namespace StatController.Runtime
             }
             else
             {
-                return this.TypeOrder(l.modifierType).CompareTo(this.TypeOrder(r.modifierType));
-            }
-        }
-
-
-        private int TypeOrder(StatModifierType t)
-        {
-            switch (t)
-            {
-                case StatModifierType.Multiplicative: return 1;
-
-                case StatModifierType.Override: return 2;
-
-                case StatModifierType.Additive: return 0;
-
-                default: return 0;
+                return ((int)l.modifierType).CompareTo((int)r.modifierType);
             }
         }
 
@@ -98,11 +124,10 @@ namespace StatController.Runtime
         public virtual object Clone()
         {
             Stat clonedStat = Activator.CreateInstance(this.GetType()) as Stat;
-            Assert.IsNotNull(clonedStat, "Failed to create clone of Stat instance");
+            Assert.IsNotNull(clonedStat, "Failed to create clone of Stat");
 
             clonedStat._modifiers = this._modifiers.ToList();
-            clonedStat._value = this._value;
-
+            clonedStat._baseValue = this._baseValue;
             return clonedStat;
         }
     }

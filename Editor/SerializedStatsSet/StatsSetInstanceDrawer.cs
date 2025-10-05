@@ -56,7 +56,6 @@ namespace StatController.Tool
 
             SerializedProperty keyProp = property.FindPropertyRelative("statKey");
             SerializedProperty valueProp = property.FindPropertyRelative("stat");
-            SerializedProperty modifiersProp = valueProp.FindPropertyRelative("_modifiers");
 
             float keyWidth = rect.width * 0.35f;
             float valueWidth = rect.width * 0.65f;
@@ -81,8 +80,14 @@ namespace StatController.Tool
             Rect statValueRect = new Rect(currentX, currentY, valueWidth - indentOffset, _lineHeight);
             EditorGUI.PropertyField(statValueRect, valueProp, GUIContent.none);
             currentY += _lineHeight + _SPACING * 2f;
+            
+            statValueRect = new Rect(currentX, currentY, valueWidth - indentOffset, _lineHeight);
+            SerializedProperty finalValueProp = valueProp.FindPropertyRelative("_finalValue");
+            finalValueProp.floatValue = EditorGUI.FloatField(statValueRect, new GUIContent("Final Value"), finalValueProp.floatValue);
+            currentY += _lineHeight + _SPACING * 2f;
 
             GUI.enabled = false;
+            SerializedProperty modifiersProp = valueProp.FindPropertyRelative("_modifiers");
             float height = EditorGUI.GetPropertyHeight(modifiersProp, true);
             Rect modifiersRect = new Rect(currentX, currentY, valueWidth - indentOffset, height);
             EditorGUI.PropertyField(modifiersRect, modifiersProp, new GUIContent("Modifiers"), true);
@@ -108,7 +113,7 @@ namespace StatController.Tool
                 return height;
             }
 
-            height += _lineHeight; //Value 필드 길이 더함.
+            height += _lineHeight * 2 + _SPACING * 3; //Value 필드 길이 더함.
             height += EditorGUI.GetPropertyHeight(modifiersProp, true);
             return height;
         }

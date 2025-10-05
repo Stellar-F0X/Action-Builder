@@ -12,7 +12,6 @@ namespace StatController.Runtime
         
         [SerializeField]
         private bool _debug;
-
         private Type _statsSetKeyType;
 
         [SerializeReference]

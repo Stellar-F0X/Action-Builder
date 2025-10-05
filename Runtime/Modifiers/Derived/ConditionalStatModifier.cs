@@ -1,81 +1,49 @@
 using System;
+using UnityEngine;
 
 namespace StatController.Runtime
 {
     [Serializable]
-    public struct ConditionalStatModifier : IStatModifier
+    public class ConditionalStatModifier : StatModifierBase
     {
-        public ConditionalStatModifier(string identity, float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override, Func<ConditionalStatModifier, float, bool> condition = null)
+        public ConditionalStatModifier(string name, float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override, Func<ConditionalStatModifier, float, bool> condition = null) : base(name, rightOperand, priority, modifierType)
         {
-            _rightOperand = rightOperand;
-            _condition = condition;
-
+            this._rightOperand = rightOperand;
             this.modifierType = modifierType;
-            this.identity = identity;
+            this.name = name;
             this.priority = priority;
+            this.condition = condition;
         }
 
-        public ConditionalStatModifier(float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override, Func<ConditionalStatModifier, float, bool> condition = null)
+        public ConditionalStatModifier(float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override, Func<ConditionalStatModifier, float, bool> condition = null) : base(string.Empty, rightOperand, priority, modifierType)
         {
-            _rightOperand = rightOperand;
-            _condition = condition;
-
+            this._rightOperand = rightOperand;
             this.modifierType = modifierType;
-            this.identity = string.Empty;
+            this.name = string.Empty;
             this.priority = priority;
+            this.condition = condition;
         }
 
-        
-        private event Func<ConditionalStatModifier, float, bool> _condition;
-
-        private float _rightOperand;
+        public event Func<ConditionalStatModifier, float, bool> condition;
 
 
-        public StatModifierType modifierType
+        public override float Calculate(float leftValue)
         {
-            get;
-            set;
-        }
-
-        public string identity
-        {
-            get;
-            set;
-        }
-
-        public int priority
-        {
-            get;
-            set;
-        }
-
-        float IStatModifier.rightOperand
-        {
-            get => _rightOperand;
-            set => _rightOperand = value;
-        }
-
-
-        public float Calculate(float value)
-        {
-            if (_condition is null)
+            if (condition is null || condition.Invoke(this, leftValue) == false)
             {
-                return value;
+                return leftValue;
             }
 
-            if (_condition.Invoke(this, value))
+            switch (base.modifierType)
             {
-                switch (modifierType)
-                {
-                    case StatModifierType.Override: return _rightOperand;
+                case StatModifierType.Override: return _rightOperand;
 
-                    case StatModifierType.Additive: return value + _rightOperand;
+                case StatModifierType.Additive: return leftValue + _rightOperand;
 
-                    case StatModifierType.Multiplicative: return value * _rightOperand;
-                }
+                case StatModifierType.Multiplicative: return leftValue * _rightOperand;
             }
 
-            return value;
+            return leftValue;
         }
     }
 }

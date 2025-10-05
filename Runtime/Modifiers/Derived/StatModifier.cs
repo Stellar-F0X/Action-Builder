@@ -3,63 +3,37 @@ using System;
 namespace StatController.Runtime
 {
     [Serializable]
-    public struct StatModifier : IStatModifier
+    public class StatModifier : StatModifierBase
     {
-        public StatModifier(string identity, float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override)
+        public StatModifier(string name, float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override) : base(name, rightOperand, priority, modifierType)
         {
             this._rightOperand = rightOperand;
             this.modifierType = modifierType;
-            this.identity = identity;
+            this.name = name;
             this.priority = priority;
         }
 
-        public StatModifier(float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override)
+        public StatModifier(float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override) : base(string.Empty, rightOperand, priority, modifierType)
         {
             this._rightOperand = rightOperand;
             this.modifierType = modifierType;
-            this.identity = string.Empty;
+            this.name = string.Empty;
             this.priority = priority;
         }
 
-        private float _rightOperand;
-
-        public StatModifierType modifierType
+        
+        public override float Calculate(float leftValue)
         {
-            get;
-            set;
-        }
-
-        public string identity
-        {
-            get;
-            set;
-        }
-
-        public int priority
-        {
-            get;
-            set;
-        }
-
-        float IStatModifier.rightOperand
-        {
-            get => _rightOperand;
-            set => _rightOperand = value;
-        }
-
-
-        public float Calculate(float value)
-        {
-            switch (modifierType)
+            switch (base.modifierType)
             {
                 case StatModifierType.Override: return _rightOperand;
 
-                case StatModifierType.Additive: return value + _rightOperand;
+                case StatModifierType.Additive: return leftValue + _rightOperand;
 
-                case StatModifierType.Multiplicative: return value * _rightOperand;
+                case StatModifierType.Multiplicative: return leftValue * _rightOperand;
             }
 
-            return value;
+            return leftValue;
         }
     }
 }

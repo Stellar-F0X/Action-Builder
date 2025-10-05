@@ -13,8 +13,9 @@ namespace StatController.Runtime
 
         public override float value
         {
-            get { return _value; }
-            set { _value = Mathf.Clamp(value, min, max); }
+            get { return base.value; }
+            
+            set { base.value = Mathf.Clamp(value, min, max); }
         }
 
 

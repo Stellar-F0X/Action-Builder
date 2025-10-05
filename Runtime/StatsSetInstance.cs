@@ -32,8 +32,8 @@ namespace StatController.Runtime
         {
             get { return stats.Count; }
         }
-
         
+
         public override IEnumerable<Stat> GetStats()
         {
             if (stats is null || stats.Count == 0)
