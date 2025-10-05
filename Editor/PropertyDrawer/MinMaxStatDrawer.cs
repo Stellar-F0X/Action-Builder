@@ -9,7 +9,7 @@ namespace StatController.Tool
     {
         public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
         {
-            SerializedProperty value = prop.FindPropertyRelative("value");
+            SerializedProperty value = prop.FindPropertyRelative("_value");
             SerializedProperty min = prop.FindPropertyRelative("min");
             SerializedProperty max = prop.FindPropertyRelative("max");
 

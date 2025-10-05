@@ -9,10 +9,18 @@ namespace StatController.Runtime
     [Serializable]
     public class Stat : ICloneable
     {
-        public float value;
+        [SerializeField]
+        protected float _value;
         
         [SerializeReference, ReadOnly]
         private List<IStatModifier> _modifiers = new List<IStatModifier>();
+
+
+        public virtual float value
+        {
+            get { return _value; }
+            set { _value = value; }
+        }  
         
         
         public void AddModifiers(params IStatModifier[] modifier) { }
@@ -33,10 +41,11 @@ namespace StatController.Runtime
         public virtual object Clone()
         {
             Stat clonedStat = Activator.CreateInstance(this.GetType()) as Stat;
-            Assert.IsNotNull(clonedStat);
+            Assert.IsNotNull(clonedStat, "Failed to create clone of Stat instance");
             
             clonedStat._modifiers = this._modifiers.ToList();
-            clonedStat.value = this.value;
+            clonedStat._value = this._value;
+            
             return clonedStat;
         }
     }
