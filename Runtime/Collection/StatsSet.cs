@@ -54,11 +54,17 @@ namespace StatController.Runtime
 
         internal override StatsSetInstance CreateInstance()
         {
+            Assert.IsNotNull(_statPairs);
+            
+            StatsSet<TKey> instantiatedSet = Object.Instantiate(this);
+            Assert.IsNotNull(instantiatedSet);
+            
+            List<StatPair<TKey>> statPairs = instantiatedSet._statPairs;
             StatsSetInstance<TKey> instance = new StatsSetInstance<TKey>();
             
-            for (int index = 0; index < _statPairs.Count; ++index)
+            for (int index = 0; index < statPairs.Count; ++index)
             {
-                instance.stats.Add(_statPairs[index].statKey, _statPairs[index].stat);
+                instance.stats.Add(statPairs[index].statKey, statPairs[index].stat);
             }
 
             return instance;

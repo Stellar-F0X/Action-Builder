@@ -7,20 +7,21 @@ namespace StatController.Runtime
     [DefaultExecutionOrder(-1)]
     public class StatController : MonoBehaviour
     {
-        [SerializeField]
+        [SerializeField, ReadOnly(true)]
         private StatsSet _statsSet;
-        
-        protected Type _statsSetKeyType;
-        protected StatsSetInstance _runtimeStats;
+        private Type _statsSetKeyType;
 
-
+        [SerializeReference, ReadOnly]
+        private protected StatsSetInstance _runtimeStats;
         
+
         public Type keyType
         {
-            get { return _statsSetKeyType.GenericTypeArguments[0]; }
+            get { return _statsSetKeyType?.GenericTypeArguments[0]; }
         }
+
         
-        
+
         protected virtual void Awake()
         {
             _statsSetKeyType = _statsSet?.GetType();
@@ -44,12 +45,12 @@ namespace StatController.Runtime
                 return null;
             }
         }
-        
-        
+
+
         public bool TryGetStat<TKey>(TKey key, out Stat stat)
         {
             stat = this.GetStat(key);
-            
+
             if (stat != null)
             {
                 return true;
@@ -74,7 +75,21 @@ namespace StatController.Runtime
         }
 
 
-        public IEnumerator<Stat> GetStats<TKey>(params TKey[] keys)
+        public IEnumerable<KeyValuePair<TKey, Stat>> GetStatPairs<TKey>()
+        {
+            if (_runtimeStats is not StatsSetInstance<TKey> instance)
+            {
+                yield break;
+            }
+
+            foreach (KeyValuePair<TKey, Stat> stat in instance.stats)
+            {
+                yield return stat;
+            }
+        }
+
+
+        public IEnumerator<Stat> GetStats<TKey>()
         {
             if (_runtimeStats is not StatsSetInstance<TKey> instance)
             {

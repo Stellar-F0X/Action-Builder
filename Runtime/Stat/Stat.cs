@@ -11,7 +11,7 @@ namespace StatController.Runtime
     {
         public float value;
         
-        [SerializeReference, HideInInspector]
+        [SerializeReference, ReadOnly]
         private List<IStatModifier> _modifiers = new List<IStatModifier>();
         
         
