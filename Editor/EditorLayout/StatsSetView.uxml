@@ -8,7 +8,7 @@
         <ui:VisualElement name="element-preview" style="flex-grow: 1; flex-direction: row; height: auto; min-height: initial; max-height: initial; margin-left: 0; margin-right: 0; background-color: rgba(88, 88, 88, 0.28); border-top-width: 0; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); margin-top: 0; margin-bottom: 0; justify-content: center;">
             <uie:PropertyField name="key-field" binding-path="_previewKey" label="Preview Key" class="property-field" style="max-width: none; align-self: center;" />
             <ui:VisualElement name="divider" style="flex-grow: 0; border-right-width: 1px; border-left-color: rgb(36, 36, 36); border-right-color: rgb(36, 36, 36); border-top-color: rgb(36, 36, 36); border-bottom-color: rgb(36, 36, 36);" />
-            <ui:Button name="value-bind-button" class="bind-button" style="align-self: center; align-items: center; justify-content: center;" />
+            <ui:Button name="value-bind-button" class="bind-button" style="align-self: center; align-items: center; justify-content: center; background-image: url(&quot;project://database/Assets/Stat-Controller/Editor/EditorLayout/Binding.png?fileID=2800000&amp;guid=b70f9662b34089d428f69120147a0048&amp;type=3#Binding&quot;);" />
             <uie:PropertyField name="value-field" binding-path="_previewStat" class="property-field" style="border-right-width: 0; align-self: center;" />
         </ui:VisualElement>
         <ui:IMGUIContainer name="element-container" />
