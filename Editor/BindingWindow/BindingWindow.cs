@@ -6,7 +6,7 @@ using UnityEngine;
 namespace StatController.Tool
 {
     /// <summary> BindingWindow 클래스는 그래프 노드 생성과 관련된 창을 제공합니다. </summary>
-    public sealed class BindingWindow : ScriptableObject, ISearchWindowProvider
+    internal sealed class BindingWindow : ScriptableObject, ISearchWindowProvider
     {
         /// <summary> 창의 제목을 나타냅니다. </summary>
         public string windowTitle;
