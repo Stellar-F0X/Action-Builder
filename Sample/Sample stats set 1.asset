@@ -9,30 +9,48 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb63d93127b142b09d19802cc03ecd15, type: 3}
+  m_Script: {fileID: 11500000, guid: 024c88fcd4f54a0ab1e22e138c3ce3cb, type: 3}
   m_Name: Sample stats set 1
   m_EditorClassIdentifier: 
-  _previewKey: 1
+  _previewKey: Gold
   _previewStat:
-    rid: 6049053487371124863
+    rid: 6049053504498303262
   _statPairs:
-  - statKey: 4
+  - statKey: HP
     stat:
-      rid: 6049053487371124867
+      rid: 6049053504498303261
+  - statKey: Bard Story
+    stat:
+      rid: 6049053504498303263
+  - statKey: Gold
+    stat:
+      rid: 6049053504498303265
   references:
     version: 2
     RefIds:
-    - rid: 6049053487371124863
+    - rid: 6049053504498303261
       type: {class: MinMaxStat, ns: StatController.Runtime, asm: StatController.Runtime}
       data:
-        value: 0
+        _finalValue: 0
+        _baseValue: 9
         _modifiers: []
-        min: 0
-        max: 0
-    - rid: 6049053487371124867
-      type: {class: MinMaxStat, ns: StatController.Runtime, asm: StatController.Runtime}
+        min: -999
+        max: 9999
+    - rid: 6049053504498303262
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController.Runtime}
       data:
-        value: 0
+        _finalValue: 0
+        _baseValue: 2222
         _modifiers: []
-        min: 0
-        max: 0
+    - rid: 6049053504498303263
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController.Runtime}
+      data:
+        _finalValue: 0
+        _baseValue: 3
+        _modifiers: []
+    - rid: 6049053504498303265
+      type: {class: Stat, ns: StatController.Runtime, asm: StatController.Runtime}
+      data:
+        _finalValue: 0
+        _baseValue: 50
+        _modifiers: []
