@@ -12,6 +12,8 @@ namespace StatController.Tool
     [CustomEditor(typeof(StatSet<>), true)]
     public class StatSetDrawer : Editor
     {
+        private readonly string _ERROR_MESSAGE = "Key is already included.";
+        
         // 클래스 파일의 인스펙터에 등록되어, 주입됨
         public VisualTreeAsset visualTreeAsset;
 
@@ -24,8 +26,7 @@ namespace StatController.Tool
         private VisualElement _rootVisualElement;
         private IMGUIContainer _imguiContainer;
         private ReorderableList _statListView;
-
-        private readonly string _ERROR_MESSAGE = "Key is already included.";
+        
 
 
         public override VisualElement CreateInspectorGUI()
@@ -199,7 +200,7 @@ namespace StatController.Tool
             SerializedProperty prop = _statListProp.GetArrayElementAtIndex(arraySize);
             Assert.IsNotNull(prop);
 
-            object clonedKey = TypeUtility.CreateInstance(keyType, value);
+            object clonedKey = this.CreateStatKeyInstanceByType(keyType, value);
             bool contained = _statSet.ContainsKey(clonedKey);
 
             if (contained)
@@ -253,6 +254,25 @@ namespace StatController.Tool
             serializedObject.ApplyModifiedProperties();
             _rootVisualElement.Bind(serializedObject);
             EditorUtility.SetDirty(target);
+        }
+
+
+        private object CreateStatKeyInstanceByType(Type type, object param)
+        {
+            if (type.IsEnum)
+            {
+                return Enum.Parse(type, param.ToString());
+            }
+
+            if (type == typeof(string))
+            {
+                string result = (string)param;
+                return string.IsNullOrEmpty(result) ? string.Empty : result;
+            }
+            else
+            {
+                return Activator.CreateInstance(type);
+            }
         }
 
 #endregion

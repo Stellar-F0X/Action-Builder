@@ -5,7 +5,7 @@ using UnityEngine.Assertions;
 
 namespace StatController.Tool
 {
-    public class StatFactoryModule : FactoryModule<Stat>
+    internal class StatFactoryModule : FactoryModule<Stat>
     {
         public StatFactoryModule(string title, int layer = 1) : base(typeof(Stat), title, layer) { }
         

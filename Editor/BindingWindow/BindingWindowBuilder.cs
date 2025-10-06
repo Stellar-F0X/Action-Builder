@@ -5,7 +5,7 @@ using UnityEngine;
 namespace StatController.Tool
 {
     /// <summary> 클래스는 BindingWindow를 구성하기 위한 빌더 패턴을 제공합니다. </summary>
-    public class BindingWindowBuilder
+    internal class BindingWindowBuilder
     {
         /// <summary> BindingWindow 인스턴스를 관리하기 위한 정적 리스트입니다. </summary>
         private readonly static List<BindingWindow> _Windows = new List<BindingWindow>();

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace StatController.Tool
 {
-    public abstract class FactoryModule
+    internal abstract class FactoryModule
     {
         protected FactoryModule(Type targetType, string title, int layer = 1)
         {
@@ -44,7 +44,7 @@ namespace StatController.Tool
     }
 
 
-    public abstract class FactoryModule<T> : FactoryModule
+    internal abstract class FactoryModule<T> : FactoryModule
     {
         protected FactoryModule(Type targetType, string title, int layer = 1) : base(targetType, title, layer)
         {

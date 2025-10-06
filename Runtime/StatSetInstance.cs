@@ -10,10 +10,11 @@ namespace StatController.Runtime
         {
             get;
         }
-        
-        public abstract IEnumerable<Stat> GetStats();
 
-        public abstract IEnumerable<string> GetStatNames();
+        public abstract Type keyType
+        {
+            get;
+        }
         
         public abstract IEnumerable<KeyValuePair<string, Stat>> GetStatPairs();
     }
@@ -24,44 +25,24 @@ namespace StatController.Runtime
     {
         public Dictionary<TKey, Stat> stats = new Dictionary<TKey, Stat>();
 
+        
         [SerializeField]
-        private List<StatPair<TKey>> _pairList = new List<StatPair<TKey>>();
+        private List<StatPair<TKey>> _pairList = new List<StatPair<TKey>>(); //PropertyDrawer 용도.
 
+        
 
         public override int statCount
         {
             get { return stats.Count; }
         }
-        
 
-        public override IEnumerable<Stat> GetStats()
+        public override Type keyType
         {
-            if (stats is null || stats.Count == 0)
-            {
-                yield break;
-            }
-            
-            foreach (Stat stat in stats.Values)
-            {
-                yield return stat;
-            }
+            get { return typeof(TKey); }
         }
 
         
-        public override IEnumerable<string> GetStatNames()
-        {
-            if (stats is null || stats.Count == 0)
-            {
-                yield break;
-            }
-            
-            foreach (TKey key in stats.Keys)
-            {
-                yield return key.ToString();
-            }
-        }
 
-        
         public override IEnumerable<KeyValuePair<string, Stat>> GetStatPairs()
         {
             if (stats is null || stats.Count == 0)

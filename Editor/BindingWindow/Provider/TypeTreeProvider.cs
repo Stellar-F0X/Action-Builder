@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace StatController.Tool
 {
-    public class TypeTreeProvider : ICategoryTreeProvider
+    internal class TypeTreeProvider : ICategoryTreeProvider
     {
         public TypeTreeProvider(bool bindSubClassTypes, bool includeBaseType = false)
         {
