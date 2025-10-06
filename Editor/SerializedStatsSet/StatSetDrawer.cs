@@ -9,13 +9,13 @@ using UnityEngine.Assertions;
 
 namespace StatController.Tool
 {
-    [CustomEditor(typeof(StatsSet<>), true)]
-    public class StatDictionaryDrawer : Editor
+    [CustomEditor(typeof(StatSet<>), true)]
+    public class StatSetDrawer : Editor
     {
         // 클래스 파일의 인스펙터에 등록되어, 주입됨
         public VisualTreeAsset visualTreeAsset;
 
-        private StatsSet _statsSet;
+        private StatSet _statSet;
         
         private SerializedProperty _previewStatKeyProp;
         private SerializedProperty _previewStatProp;
@@ -30,8 +30,8 @@ namespace StatController.Tool
 
         public override VisualElement CreateInspectorGUI()
         {
-            _statsSet = (StatsSet)target;
-            Assert.IsNotNull(_statsSet);
+            _statSet = (StatSet)target;
+            Assert.IsNotNull(_statSet);
             
             _previewStatKeyProp = serializedObject.FindProperty("_previewKey");
             _previewStatProp = serializedObject.FindProperty("_previewStat");
@@ -200,7 +200,7 @@ namespace StatController.Tool
             Assert.IsNotNull(prop);
 
             object clonedKey = TypeUtility.CreateInstance(keyType, value);
-            bool contained = _statsSet.ContainsKey(clonedKey);
+            bool contained = _statSet.ContainsKey(clonedKey);
 
             if (contained)
             {

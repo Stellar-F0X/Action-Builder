@@ -5,7 +5,7 @@ using UnityEngine.Assertions;
 
 namespace StatController.Runtime
 {
-    public abstract class StatsSet : ScriptableObject
+    public abstract class StatSet : ScriptableObject
     {
         //TODO: ToJson 구현
         public virtual string ToJson()
@@ -23,11 +23,11 @@ namespace StatController.Runtime
 
         public abstract bool ContainsKey(object key);
 
-        internal abstract StatsSetInstance CreateInstance();
+        internal abstract StatSetInstance CreateInstance();
     }
     
     
-    public class StatsSet<TKey> : StatsSet
+    public class StatSet<TKey> : StatSet
     {
 #if UNITY_EDITOR
         [SerializeField]
@@ -52,15 +52,15 @@ namespace StatController.Runtime
         }
         
 
-        internal override StatsSetInstance CreateInstance()
+        internal override StatSetInstance CreateInstance()
         {
             Assert.IsNotNull(_statPairs);
             
-            StatsSet<TKey> instantiatedSet = Object.Instantiate(this);
+            StatSet<TKey> instantiatedSet = Object.Instantiate(this);
             Assert.IsNotNull(instantiatedSet);
             
             List<StatPair<TKey>> statPairs = instantiatedSet._statPairs;
-            StatsSetInstance<TKey> instance = new StatsSetInstance<TKey>();
+            StatSetInstance<TKey> instance = new StatSetInstance<TKey>();
             
             for (int index = 0; index < statPairs.Count; ++index)
             {

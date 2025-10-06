@@ -1,0 +1,14 @@
+	{
+	  "name": "com.stellarf0x.statcontroller",
+	  "version": "1.0.0",
+	  "displayName": "Stat Controller",
+	  "description": "Control Stats",
+	  "author": {
+	    "name": "Stellar-F0X"
+	  },
+	  "keywords": [
+        "Stat",
+		"stat Controller",
+		"stat System"
+	  ]
+	}

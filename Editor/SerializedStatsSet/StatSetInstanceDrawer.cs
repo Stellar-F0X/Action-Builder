@@ -6,8 +6,8 @@ using UnityEngine.Assertions;
 
 namespace StatController.Tool
 {
-    [CustomPropertyDrawer(typeof(StatsSetInstance))]
-    public class StatsSetInstanceDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(StatSetInstance))]
+    public class StatSetInstanceDrawer : PropertyDrawer
     {
         private readonly float _lineHeight = EditorGUIUtility.singleLineHeight;
 

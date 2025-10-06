@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace StatController.Runtime
 {
-    internal abstract class StatsSetInstance
+    internal abstract class StatSetInstance
     {
         public abstract int statCount
         {
@@ -20,7 +20,7 @@ namespace StatController.Runtime
 
 
     [Serializable]
-    internal class StatsSetInstance<TKey> : StatsSetInstance, ISerializationCallbackReceiver
+    internal class StatSetInstance<TKey> : StatSetInstance, ISerializationCallbackReceiver
     {
         public Dictionary<TKey, Stat> stats = new Dictionary<TKey, Stat>();
 

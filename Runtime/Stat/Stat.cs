@@ -14,6 +14,7 @@ namespace StatController.Runtime
 
         [SerializeField]
         protected float _baseValue;
+
         protected bool _changedModifiers = true; //최초 한 번만.
 
         [SerializeReference, ReadOnly]
@@ -27,7 +28,7 @@ namespace StatController.Runtime
                 if (this._changedModifiers)
                 {
                     this._changedModifiers = false;
-                    this.value = this.TryApplyModifiers();
+                    this._finalValue = this.ApplyModifiers();
                 }
 
                 return this._finalValue;
@@ -40,16 +41,25 @@ namespace StatController.Runtime
         }
 
 
-        protected virtual float TryApplyModifiers()
+        public virtual float baseValue
+        {
+            get { return _baseValue; }
+
+            set { _baseValue = value; }
+        }
+
+
+
+        protected virtual float ApplyModifiers()
         {
             if (_modifiers.Count > 1)
             {
                 _modifiers.Sort(this.DetermineModifierPriority);
             }
-            
+
             float currentValue = this._baseValue;
 
-            for (int index = 0; index < _modifiers.Count; index++)
+            for (int index = 0; index < _modifiers.Count; ++index)
             {
                 StatModifierBase modifier = _modifiers[index];
                 currentValue = modifier.Calculate(currentValue);

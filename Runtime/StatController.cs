@@ -8,14 +8,14 @@ namespace StatController.Runtime
     public class StatController : MonoBehaviour
     {
         [SerializeField, ReadOnly(true)]
-        private StatsSet _statsSet;
+        private StatSet _statSet;
         
         [SerializeField]
         private bool _debug;
         private Type _statsSetKeyType;
 
         [SerializeReference]
-        private protected StatsSetInstance _runtimeStats;
+        private protected StatSetInstance _runtimeStat;
 
 
         public Type keyType
@@ -27,14 +27,14 @@ namespace StatController.Runtime
 
         protected virtual void Awake()
         {
-            _statsSetKeyType = _statsSet?.GetType();
-            _runtimeStats = _statsSet?.CreateInstance();
+            _statsSetKeyType = _statSet?.GetType();
+            _runtimeStat = _statSet?.CreateInstance();
         }
 
 
         public Stat GetStat<TKey>(TKey key)
         {
-            if (_runtimeStats is not StatsSetInstance<TKey> instance)
+            if (_runtimeStat is not StatSetInstance<TKey> instance)
             {
                 return null;
             }
@@ -67,7 +67,7 @@ namespace StatController.Runtime
 
         public bool ExistStat<TKey>(TKey key)
         {
-            if (_runtimeStats is not StatsSetInstance<TKey> instance)
+            if (_runtimeStat is not StatSetInstance<TKey> instance)
             {
                 return false;
             }
@@ -80,7 +80,7 @@ namespace StatController.Runtime
 
         public IEnumerable<KeyValuePair<TKey, Stat>> GetStatPairs<TKey>()
         {
-            if (_runtimeStats is not StatsSetInstance<TKey> instance)
+            if (_runtimeStat is not StatSetInstance<TKey> instance)
             {
                 yield break;
             }
@@ -94,7 +94,7 @@ namespace StatController.Runtime
 
         public IEnumerator<Stat> GetStats<TKey>()
         {
-            if (_runtimeStats is not StatsSetInstance<TKey> instance)
+            if (_runtimeStat is not StatSetInstance<TKey> instance)
             {
                 yield break;
             }
@@ -108,7 +108,7 @@ namespace StatController.Runtime
 
         public IEnumerator<TKey> GetKeys<TKey>()
         {
-            if (_runtimeStats is not StatsSetInstance<TKey> instance)
+            if (_runtimeStat is not StatSetInstance<TKey> instance)
             {
                 yield break;
             }
@@ -130,14 +130,14 @@ namespace StatController.Runtime
 
             const float textHeight = 30f;
             
-            GUI.Box(new Rect(2f, 2f, 200f, _runtimeStats.statCount * textHeight), string.Empty);
+            GUI.Box(new Rect(2f, 2f, 200f, _runtimeStat.statCount * textHeight), string.Empty);
             GUI.Label(new Rect(4f, 2f, 100f, 30f), $"{this.name}'s Stats");
 
             Rect textRect = new Rect(4f, 22f, 150f, textHeight);
             Rect plusButtonRect = new Rect(textRect.x + textRect.width, textRect.y, 20f, 20f);
             Rect minusButtonRect = new Rect(plusButtonRect.x + 22, plusButtonRect.y, plusButtonRect.width, plusButtonRect.height);
 
-            foreach (KeyValuePair<string, Stat> stat in _runtimeStats.GetStatPairs())
+            foreach (KeyValuePair<string, Stat> stat in _runtimeStat.GetStatPairs())
             {
                 GUI.Label(textRect, $"{stat.Key}: {stat.Value.value:0.##;-0.##}");
                 
