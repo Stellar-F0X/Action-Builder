@@ -1,6 +1,6 @@
 using System;
-using StatController.Runtime;
 using UnityEngine;
+using StatController.Runtime;
 using UnityEngine.Assertions;
 
 namespace StatController.Tool

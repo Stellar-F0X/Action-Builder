@@ -1,6 +1,6 @@
 using UnityEngine.UIElements;
 
-namespace TaskStreamer.Tool
+namespace StatController.Tool
 {
     [UxmlElement]
     public partial class SplitView : TwoPaneSplitView { }
