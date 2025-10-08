@@ -1,15 +1,15 @@
 using System;
-using StatController.Runtime;
-using UnityEngine.UIElements;
-using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEditorInternal;
-using UnityEngine;
+using UnityEditor;
 using UnityEngine.Assertions;
+using UnityEngine.UIElements;
+using UnityEngine;
+using StatController.Runtime;
 
 namespace StatController.Tool
 {
-    [CustomEditor(typeof(StatSet<>), true)]
+    [CustomEditor(typeof(StatSet<>), true, isFallback = false)]
     public class StatSetDrawer : Editor
     {
         private readonly string _ERROR_MESSAGE = "Key is already included.";

@@ -6,7 +6,7 @@ namespace StatController.Runtime
     [Serializable]
     public class SequentialStatModifier : StatModifierBase
     {
-        public SequentialStatModifier(string name, float rightOperand, StatModifier[] modifiers, int priority = 0) : base(name, rightOperand, priority, StatModifierType.Override)
+        public SequentialStatModifier(string name, float operand, StatModifier[] modifiers, int priority = 0) : base(name, operand, priority, StatModifierType.Override)
         {
             _modifiers = modifiers;
         }

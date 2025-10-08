@@ -12,7 +12,7 @@ namespace StatController.Runtime
         internal abstract StatSetInstance CreateInstance();
     }
 
-
+    
     public abstract class StatSet<TKey> : StatSet
     {
 #if UNITY_EDITOR

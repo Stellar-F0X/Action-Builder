@@ -5,32 +5,22 @@ namespace StatController.Runtime
     [Serializable]
     public class StatModifier : StatModifierBase
     {
-        public StatModifier(string name, float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override) : base(name, rightOperand, priority, modifierType)
+        public StatModifier(string name, float operand, int priority = 0, StatModifierType type = StatModifierType.Override) : base(name, operand, priority, type)
         {
-            this._rightOperand = rightOperand;
-            this.modifierType = modifierType;
-            this.name = name;
-            this.priority = priority;
-        }
-
-        public StatModifier(float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override) : base(string.Empty, rightOperand, priority, modifierType)
-        {
-            this._rightOperand = rightOperand;
-            this.modifierType = modifierType;
-            this.name = string.Empty;
-            this.priority = priority;
+            this._operand = operand;
+            this._type = type;
+            this._name = name;
+            this._priority = priority;
         }
 
         
         public override float Calculate(float leftValue)
         {
-            switch (base.modifierType)
+            switch (base._type)
             {
-                case StatModifierType.Override: return _rightOperand;
-
-                case StatModifierType.Additive: return leftValue + _rightOperand;
-
-                case StatModifierType.Multiplicative: return leftValue * _rightOperand;
+                case StatModifierType.Override: return _operand;
+                case StatModifierType.Additive: return leftValue + _operand;
+                case StatModifierType.Multiplicative: return leftValue * _operand;
             }
 
             return leftValue;

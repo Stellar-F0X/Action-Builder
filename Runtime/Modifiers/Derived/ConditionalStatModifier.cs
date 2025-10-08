@@ -6,21 +6,21 @@ namespace StatController.Runtime
     [Serializable]
     public class ConditionalStatModifier : StatModifierBase
     {
-        public ConditionalStatModifier(string name, float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override, Func<ConditionalStatModifier, float, bool> condition = null) : base(name, rightOperand, priority, modifierType)
+        public ConditionalStatModifier(string name, float operand, int priority = 0, StatModifierType type = StatModifierType.Override, Func<ConditionalStatModifier, float, bool> condition = null) : base(name, operand, priority, type)
         {
-            this._rightOperand = rightOperand;
-            this.modifierType = modifierType;
-            this.name = name;
-            this.priority = priority;
+            this._operand = operand;
+            this._type = type;
+            this._name = name;
+            this._priority = priority;
             this.condition = condition;
         }
 
-        public ConditionalStatModifier(float rightOperand, int priority = 0, StatModifierType modifierType = StatModifierType.Override, Func<ConditionalStatModifier, float, bool> condition = null) : base(string.Empty, rightOperand, priority, modifierType)
+        public ConditionalStatModifier(float operand, int priority = 0, StatModifierType type = StatModifierType.Override, Func<ConditionalStatModifier, float, bool> condition = null) : base(string.Empty, operand, priority, type)
         {
-            this._rightOperand = rightOperand;
-            this.modifierType = modifierType;
-            this.name = string.Empty;
-            this.priority = priority;
+            this._operand = operand;
+            this._type = type;
+            this._name = string.Empty;
+            this._priority = priority;
             this.condition = condition;
         }
 
@@ -34,13 +34,13 @@ namespace StatController.Runtime
                 return leftValue;
             }
 
-            switch (base.modifierType)
+            switch (base._type)
             {
-                case StatModifierType.Override: return _rightOperand;
+                case StatModifierType.Override: return _operand;
 
-                case StatModifierType.Additive: return leftValue + _rightOperand;
+                case StatModifierType.Additive: return leftValue + _operand;
 
-                case StatModifierType.Multiplicative: return leftValue * _rightOperand;
+                case StatModifierType.Multiplicative: return leftValue * _operand;
             }
 
             return leftValue;

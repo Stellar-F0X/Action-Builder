@@ -9,13 +9,12 @@ namespace StatController.Runtime
     [Serializable]
     public class Stat : ICloneable
     {
-        [SerializeField, ReadOnly]
-        protected float _finalValue;
-
         [SerializeField]
         protected float _baseValue;
-
         protected bool _changedModifiers = true; //최초 한 번만.
+        
+        [SerializeField, ReadOnly]
+        protected float _finalValue;
 
         [SerializeReference, ReadOnly]
         private List<StatModifierBase> _modifiers = new List<StatModifierBase>();
@@ -113,7 +112,7 @@ namespace StatController.Runtime
             }
             else
             {
-                return _modifiers.Where(m => condition.Invoke(m.rightOperand)).ToList();
+                return _modifiers.Where(m => condition.Invoke(m.operand)).ToList();
             }
         }
 
