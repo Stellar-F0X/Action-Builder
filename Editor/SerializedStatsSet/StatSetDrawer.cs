@@ -60,7 +60,6 @@ namespace StatController.Tool
             
             for (int i = 0; i < _statListProp.arraySize; i++)
             {
-                // 현재 수정 중인 인덱스는 제외
                 if (i == excludeIndex)
                 {
                     continue;
@@ -71,11 +70,11 @@ namespace StatController.Tool
                 
                 if (otherKeyProp.boxedValue != null && otherKeyProp.boxedValue.Equals(keyValue))
                 {
-                    return true; // 중복 발견
+                    return true;
                 }
             }
             
-            return false; // 중복 없음
+            return false;
         }
 
 
@@ -200,7 +199,7 @@ namespace StatController.Tool
             SerializedProperty prop = _statListProp.GetArrayElementAtIndex(arraySize);
             Assert.IsNotNull(prop);
 
-            object clonedKey = this.CreateStatKeyInstanceByType(keyType, value);
+            object clonedKey = Utility.CreateStatKeyInstanceByType(keyType, value);
             bool contained = _statSet.ContainsKey(clonedKey);
 
             if (contained)
@@ -254,25 +253,6 @@ namespace StatController.Tool
             serializedObject.ApplyModifiedProperties();
             _rootVisualElement.Bind(serializedObject);
             EditorUtility.SetDirty(target);
-        }
-
-
-        private object CreateStatKeyInstanceByType(Type type, object param)
-        {
-            if (type.IsEnum)
-            {
-                return Enum.Parse(type, param.ToString());
-            }
-
-            if (type == typeof(string))
-            {
-                string result = (string)param;
-                return string.IsNullOrEmpty(result) ? string.Empty : result;
-            }
-            else
-            {
-                return Activator.CreateInstance(type);
-            }
         }
 
 #endregion

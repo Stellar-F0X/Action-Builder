@@ -7,8 +7,8 @@ namespace StatController.Runtime
     [DefaultExecutionOrder(-1)]
     public class StatController : MonoBehaviour
     {
-        [SerializeField, ReadOnly(true)]
-        private StatSet _statSet;
+        [SerializeReference, ReadOnly(true)]
+        private StatSet _statSetTemplate;
         
         [SerializeField]
         private bool _debug;
@@ -27,8 +27,8 @@ namespace StatController.Runtime
 
         protected virtual void Awake()
         {
-            _statsSetKeyType = _statSet?.GetType();
-            _runtimeStat = _statSet?.CreateInstance();
+            _statsSetKeyType = _statSetTemplate?.GetType();
+            _runtimeStat = _statSetTemplate?.CreateInstance();
         }
 
 
