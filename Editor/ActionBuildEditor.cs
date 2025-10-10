@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ActionBuilder.Runtime;
+using Codice.Client.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -65,7 +67,7 @@ namespace ActionBuilder.Tool
 
             _actionListView.bindItem = this.ActionListBindItem;
             _actionListView.makeItem = this.BindActionListItem;
-            _actionListView.selectionChanged += this.DisplaySelectedActions;
+            _actionListView.selectionChanged += this.OnActionSelectionChanged;
 
             _effectListView.bindItem = this.BindEffectListItem;
 
@@ -85,32 +87,36 @@ namespace ActionBuilder.Tool
             }
 
             _actionView.onGUIHandler = this.RenderActionEditorUI;
-            _dataView.style.display = DisplayStyle.Flex;
 
             if (selectedAction.effects is null)
             {
                 _effectListView.itemsSource = null;
+                _dataView.style.display = DisplayStyle.None;
+                return;
+            }
+
+            _effectListView.itemsSource = selectedAction.effects;
+
+            if (selectedAction.effects.Count == 0)
+            {
                 _effectListView.style.display = DisplayStyle.None;
             }
             else
             {
-                _effectListView.itemsSource = selectedAction.effects;
-                bool hasEffects = selectedAction.effects.Count != 0;
-                _effectListView.style.display = hasEffects ? DisplayStyle.Flex : DisplayStyle.None;
+                _effectListView.style.display = DisplayStyle.Flex;
+                _effectListView.schedule.Execute(_effectListView.Rebuild).ExecuteLater(0);
             }
-
-            _effectListView.RefreshItems();
         }
 
 
 #region Action List
 
-        private void DisplaySelectedActions(IEnumerable<object> selected)
+        private void OnActionSelectionChanged(IEnumerable<object> selected)
         {
             Assert.IsNotNull(_actionListView);
             int idx = _actionListView.selectedIndex;
             Assert.IsTrue(idx >= 0 && idx < _actionList.Count);
-            
+
             if (_actionList[idx] == null)
             {
                 _dataView.style.display = DisplayStyle.None;
@@ -166,15 +172,21 @@ namespace ActionBuilder.Tool
 
         private void BindEffectListItem(VisualElement visualElement, int index)
         {
+            if (_serializedObject is null)
+            {
+                _serializedObject = new SerializedObject(_actionList[index]);
+            }
+
+            _serializedObject.Update();
+
             EffectView view = visualElement.Q<EffectView>();
-            
             SerializedProperty effectListProp = _serializedObject.FindProperty("_effects");
             SerializedProperty effectProp = effectListProp.GetArrayElementAtIndex(index);
 
             view.onDeleteRequested -= this.DeleteEffectOnClickedButton;
             view.onDeleteRequested += this.DeleteEffectOnClickedButton;
-            
-            view.Refresh(effectProp, ((ActionBase)_serializedObject.targetObject).effects[index]);
+
+            view.Refresh(effectProp, (EffectBase)effectProp.boxedValue);
         }
 
 

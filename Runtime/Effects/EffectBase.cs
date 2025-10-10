@@ -7,9 +7,14 @@ namespace ActionBuilder.Runtime
     public abstract class EffectBase
     {
         public string name;
-        public bool enable;
+        
+        [HideInInspector]
+        public bool enable = true;
+        
+        [TextArea(2, 5)]
         public string description;
 
+        [Space(3)]
         public EffectPlayOption playOption;
         public EffectFinishOption finishOption;
 
@@ -24,7 +29,7 @@ namespace ActionBuilder.Runtime
 
 #if UNITY_EDITOR
         [SerializeField, HideInInspector]
-        internal bool isExpanded;
+        internal bool isExpanded = true;
 #endif
 
 

@@ -1,8 +1,10 @@
 using System;
 using ActionBuilder.Runtime;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Tool
 {
@@ -10,20 +12,26 @@ namespace ActionBuilder.Tool
     public partial class EffectView : VisualElement
     {
         public event Action<EffectView> onDeleteRequested;
-        
+
         private SerializedProperty _serializedProperty;
         private SerializedObject _serializedObject;
-        
+
         private IMGUIContainer _imguiContainer;
         private Toggle _enableToggle;
         private Foldout _foldout;
+        private Label _nameLabel;
         private Button _deleteButton;
         private EffectBase _effect;
-        
-        
+
+
         public EffectBase effect
         {
             get { return _effect; }
+        }
+
+        public Object target
+        {
+            get { return _serializedObject.targetObject; }
         }
 
 
@@ -33,23 +41,32 @@ namespace ActionBuilder.Tool
             _enableToggle = this.Q<Toggle>();
             _deleteButton = this.Q<Button>();
             _foldout = this.Q<Foldout>();
-            
+            _nameLabel = _foldout.Q<Label>();
+
             _effect = newEffect;
             _serializedProperty = property;
             _serializedObject = property.serializedObject;
-            
-            _foldout.text = property.displayName;
+
+            _foldout.UnregisterValueChangedCallback(this.UpdateEffectExpansion);
+            _foldout.RegisterValueChangedCallback(this.UpdateEffectExpansion);
+            _foldout.text = string.IsNullOrEmpty(newEffect.name) ? property.displayName : newEffect.name;
             _foldout.value = newEffect.isExpanded;
-            
+
+            _nameLabel.Unbind();
+            SerializedProperty nameProp = _serializedProperty.FindPropertyRelative("name");
+            _nameLabel.TrackPropertyValue(nameProp, this.ChangeEffectName);
+
+            _enableToggle.UnregisterValueChangedCallback(this.EnableEffect);
+            _enableToggle.RegisterValueChangedCallback(this.EnableEffect);
             _enableToggle.value = newEffect.enable;
 
             _deleteButton.clicked -= this.RequestDeletion;
             _deleteButton.clicked += this.RequestDeletion;
-            
+
             _imguiContainer.onGUIHandler = this.Render;
             _imguiContainer.MarkDirtyRepaint();
         }
-        
+
 
         private void Render()
         {
@@ -60,8 +77,9 @@ namespace ActionBuilder.Tool
             {
                 return;
             }
-            
+
             _serializedObject.Update();
+            
             using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
             EditorGUILayout.PropertyField(_serializedProperty, true);
 
@@ -72,9 +90,46 @@ namespace ActionBuilder.Tool
         }
 
 
+#region UI Events
+
         private void RequestDeletion()
         {
             onDeleteRequested?.Invoke(this);
+            EditorUtility.SetDirty(target);
         }
+        
+        
+        private void UpdateEffectExpansion(ChangeEvent<bool> evt)
+        {
+            if (evt.newValue)
+            {
+                _imguiContainer.style.height = EditorGUI.GetPropertyHeight(_serializedProperty);
+            }
+            else
+            {
+                _imguiContainer.style.height = 0;
+            }
+            
+            _effect.isExpanded = evt.newValue;
+            EditorUtility.SetDirty(target);
+        }
+
+
+        private void EnableEffect(ChangeEvent<bool> evt)
+        {
+            _effect.enable = evt.newValue;
+            EditorUtility.SetDirty(target);
+        }
+        
+        
+        private void ChangeEffectName(SerializedProperty prop)
+        {
+            _effect.name = prop.stringValue;
+            _foldout.text = prop.stringValue;
+            _serializedObject.Update();
+            EditorUtility.SetDirty(target);
+        }
+
+#endregion
     }
 }
