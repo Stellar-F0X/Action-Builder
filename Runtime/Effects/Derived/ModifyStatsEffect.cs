@@ -1,8 +1,9 @@
-using ActionBuilder.Runtime;
+using System;
 using UnityEngine;
 
 namespace ActionBuilder.Runtime
 {
+    [Serializable]
     public class ModifyStatsEffect : EffectBase
     {
         [SerializeReference]

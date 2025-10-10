@@ -1,0 +1,11 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Action-Builder/Editor/EditorLayout/EffectPanelStyle.uss?fileID=7433441132597879392&amp;guid=16894457e5f8536428bcbd8e418e9313&amp;type=3#EffectPanelStyle" />
+    <ActionBuilder.Tool.EffectView name="container">
+        <ui:Foldout text="Foldout" name="main-header">
+            <ui:IMGUIContainer />
+        </ui:Foldout>
+        <ui:Toggle name="enable-toggle" value="true" style="position: absolute; top: 4px; left: auto; height: 14px; right: auto;" />
+        <ui:Button name="delete-button" text="X" style="position: absolute; top: 4px; left: auto; height: 15px; width: 18px; border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-bottom-left-radius: 3px; right: 0; border-top-width: 1px; border-left-color: rgb(45, 45, 45); border-right-color: rgb(45, 45, 45); border-top-color: rgb(45, 45, 45); border-bottom-color: rgb(45, 45, 45); border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; margin-right: 2px; margin-left: 2px;" />
+        <ui:VisualElement name="header-line" class="line" style="margin-top: 0; border-top-width: 1px; margin-bottom: 1px; padding-top: 0; border-bottom-width: 1px;" />
+    </ActionBuilder.Tool.EffectView>
+</ui:UXML>

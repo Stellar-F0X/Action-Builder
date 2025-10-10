@@ -1,6 +1,8 @@
 using System;
 using ActionBuilder.Runtime;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace ActionBuilder.Tool
 {
@@ -10,7 +12,10 @@ namespace ActionBuilder.Tool
         
         protected override EffectBase Create(Type type, Vector2 position, string entryName)
         {
-            throw new NotImplementedException();
+             EffectBase createdEffect = Activator.CreateInstance(type) as EffectBase;
+             Assert.IsNotNull(createdEffect, $"Failed to create instance of type {type}");
+             createdEffect.name = ObjectNames.NicifyVariableName(entryName);
+             return createdEffect;
         }
     }
 }
