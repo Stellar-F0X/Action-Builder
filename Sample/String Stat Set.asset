@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9df6826e1eef4511ab31d9ea87c59220, type: 3}
+  m_Name: String Stat Set
+  m_EditorClassIdentifier: 
+  _previewKey: 33New
+  _previewStat:
+    rid: 6049053648370532419
+  _statPairs:
+  - statKey: New
+    stat:
+      rid: 6049053648370532421
+  - statKey: 33New
+    stat:
+      rid: 6049053648370532422
+  references:
+    version: 2
+    RefIds:
+    - rid: 6049053648370532419
+      type: {class: Stat, ns: ActionBuilder.Runtime, asm: ActionBuilder.Runtime}
+      data:
+        _baseValue: 5
+        _finalValue: 0
+        _modifiers: []
+    - rid: 6049053648370532421
+      type: {class: Stat, ns: ActionBuilder.Runtime, asm: ActionBuilder.Runtime}
+      data:
+        _baseValue: 0
+        _finalValue: 0
+        _modifiers: []
+    - rid: 6049053648370532422
+      type: {class: Stat, ns: ActionBuilder.Runtime, asm: ActionBuilder.Runtime}
+      data:
+        _baseValue: 5
+        _finalValue: 0
+        _modifiers: []

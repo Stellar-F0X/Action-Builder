@@ -1,7 +1,6 @@
 using System;
 using ActionBuilder.Runtime;
 using UnityEditor;
-using UnityEngine;
 
 namespace ActionBuilder.Tool
 {
@@ -21,15 +20,15 @@ namespace ActionBuilder.Tool
             
             for (var iterator = serializedObject.GetIterator(); iterator.NextVisible(enterChildren);)
             {
-                if (ShouldSkipProperty(iterator.name))
+                if (this.ShouldSkipProperty(iterator.name))
                 {
                     enterChildren = false;
                     continue;
                 }
 
-                if (IsScriptProperty(iterator.name))
+                if (this.IsScriptProperty(iterator.name))
                 {
-                    DrawScriptProperty(iterator);
+                    this.DrawScriptProperty(iterator);
                 }
                 else
                 {
@@ -44,19 +43,19 @@ namespace ActionBuilder.Tool
         
         
 
-        private static bool ShouldSkipProperty(string propertyName)
+        private bool ShouldSkipProperty(string propertyName)
         {
             return propertyName.Equals(_EFFECTS_FIELD_NAME, StringComparison.OrdinalIgnoreCase);
         }
         
 
-        private static bool IsScriptProperty(string propertyName)
+        private bool IsScriptProperty(string propertyName)
         {
             return propertyName.Equals(_SCRIPT_FIELD_NAME, StringComparison.OrdinalIgnoreCase);
         }
 
         
-        private static void DrawScriptProperty(SerializedProperty iterator)
+        private void DrawScriptProperty(SerializedProperty iterator)
         {
             using (new EditorGUI.DisabledScope(true))
             {

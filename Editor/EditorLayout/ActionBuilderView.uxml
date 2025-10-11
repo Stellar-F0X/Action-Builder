@@ -11,7 +11,7 @@
                 <ui:ListView name="action-list" allow-add="false" allow-remove="false" show-bound-collection-size="false" show-alternating-row-backgrounds="ContentOnly" style="background-color: rgb(58, 58, 58);" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="right-view" class="splitted-view" style="margin-left: 1px; margin-right: 1px; flex-shrink: 1; flex-basis: auto;">
+        <ui:VisualElement name="right-view" class="splitted-view" style="margin-left: 1px; margin-right: 1px; flex-shrink: 1; flex-basis: auto; left: auto; min-width: 220px;">
             <ui:Label text="Inspector" name="title" class="title" />
             <ui:VisualElement name="data-view" style="flex-grow: 1; display: flex;">
                 <ui:Foldout text="Action" style="flex-shrink: 0;">

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace ActionBuilder.Runtime
 {
@@ -45,7 +46,9 @@ namespace ActionBuilder.Runtime
 
         public override IEnumerable<KeyValuePair<string, Stat>> GetStatPairs()
         {
-            if (stats is null || stats.Count == 0)
+            Assert.IsNotNull(stats, "_statPairs is null");
+            
+            if (stats.Count == 0)
             {
                 yield break;
             }

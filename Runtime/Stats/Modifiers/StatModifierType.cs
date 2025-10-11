@@ -1,5 +1,3 @@
-using System;
-
 namespace ActionBuilder.Runtime
 {
     public enum StatModifierType

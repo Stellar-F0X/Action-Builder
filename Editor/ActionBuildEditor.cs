@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ActionBuilder.Runtime;
-using Codice.Client.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -37,12 +35,14 @@ namespace ActionBuilder.Tool
         private SerializedObject _serializedObject;
 
 
+            
         [MenuItem("Tools/ActionBuilder")]
         public static void OpenWindow()
         {
             ActionBuildEditor wnd = GetWindow<ActionBuildEditor>();
             wnd.titleContent = new GUIContent("Action Builder");
         }
+        
 
 
         private void CreateGUI()
@@ -65,7 +65,7 @@ namespace ActionBuilder.Tool
             _deleteActionButton.clicked += this.DeleteActionOnClickedButton;
             _addEffectButton.clickable.clickedWithEventInfo += this.AddEffectOnClickedButton;
 
-            _actionListView.bindItem = this.ActionListBindItem;
+            _actionListView.bindItem = this.BindActionToList;
             _actionListView.makeItem = this.BindActionListItem;
             _actionListView.selectionChanged += this.OnActionSelectionChanged;
 
@@ -73,6 +73,8 @@ namespace ActionBuilder.Tool
 
             _actionList.AddRange(Resources.LoadAll<ActionBase>("Actions"));
             _actionListView.itemsSource = _actionList;
+            
+            _dataView.style.display = DisplayStyle.None;
             Assert.IsNotNull(_actionList);
         }
 
@@ -95,6 +97,7 @@ namespace ActionBuilder.Tool
                 return;
             }
 
+            _dataView.style.display = DisplayStyle.Flex;
             _effectListView.itemsSource = selectedAction.effects;
 
             if (selectedAction.effects.Count == 0)
@@ -131,15 +134,17 @@ namespace ActionBuilder.Tool
         private VisualElement BindActionListItem()
         {
             VisualElement rootElement = new VisualElement();
+            
             rootElement.style.flexDirection = FlexDirection.Row;
             rootElement.style.alignItems = Align.Center;
+            
             rootElement.Add(new Image());
             rootElement.Add(new Label());
             return rootElement;
         }
 
 
-        private void ActionListBindItem(VisualElement visualElement, int index)
+        private void BindActionToList(VisualElement visualElement, int index)
         {
             Image icon = visualElement.Q<Image>();
             Label nameLabel = visualElement.Q<Label>();
@@ -147,6 +152,8 @@ namespace ActionBuilder.Tool
             ActionBase action = _actionList[index];
             nameLabel.text = action.name;
             icon.sprite = action.icon;
+            
+            visualElement.tooltip = action.description;
         }
 
 
@@ -198,6 +205,10 @@ namespace ActionBuilder.Tool
             _effectListView.itemsSource.Add(effect);
             _effectListView.RefreshItems();
 
+            ActionBase action = _serializedObject.targetObject as ActionBase;
+            Assert.IsNotNull(action, "action is NullReference");
+            effect.referencedAction = action;
+            
             _effectListView.style.display = DisplayStyle.Flex;
         }
 
@@ -245,6 +256,16 @@ namespace ActionBuilder.Tool
             }
 
             action.effects.RemoveAt(effectIndex);
+
+            if (action.effects.Count == 0)
+            {
+                _effectListView.style.display = DisplayStyle.None;
+            }
+            else
+            {
+                _effectListView.style.display = DisplayStyle.Flex;
+            }
+            
             _effectListView.RefreshItems();
             this.Repaint();
         }

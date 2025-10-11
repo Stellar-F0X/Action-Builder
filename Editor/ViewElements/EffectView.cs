@@ -2,6 +2,7 @@ using System;
 using ActionBuilder.Runtime;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
@@ -22,6 +23,7 @@ namespace ActionBuilder.Tool
         private Label _nameLabel;
         private Button _deleteButton;
         private EffectBase _effect;
+        private GUIContent _iconContent;
 
 
         public EffectBase effect
@@ -29,62 +31,106 @@ namespace ActionBuilder.Tool
             get { return _effect; }
         }
 
-        public Object target
+        public Object targetObject
         {
             get { return _serializedObject.targetObject; }
         }
 
 
+
+#region Init
+
         public void Refresh(SerializedProperty property, EffectBase newEffect)
         {
-            _imguiContainer = this.Q<IMGUIContainer>();
-            _enableToggle = this.Q<Toggle>();
-            _deleteButton = this.Q<Button>();
-            _foldout = this.Q<Foldout>();
-            _nameLabel = _foldout.Q<Label>();
-
             _effect = newEffect;
             _serializedProperty = property;
             _serializedObject = property.serializedObject;
 
+            this.InitializeEffectUI(property, newEffect);
+        }
+
+
+        private void InitializeEffectUI(SerializedProperty property, EffectBase newEffect)
+        {
+            _imguiContainer = this.Q<IMGUIContainer>("field-container");
+            _enableToggle = this.Q<Toggle>("enable-toggle");
+            _deleteButton = this.Q<Button>("delete-button");
+            _foldout = this.Q<Foldout>("main-header");
+            _nameLabel = _foldout.Q<Label>();
+            
+            this.tooltip = effect.description;
+
             _foldout.UnregisterValueChangedCallback(this.UpdateEffectExpansion);
             _foldout.RegisterValueChangedCallback(this.UpdateEffectExpansion);
-            _foldout.text = string.IsNullOrEmpty(newEffect.name) ? property.displayName : newEffect.name;
-            _foldout.value = newEffect.isExpanded;
+
+            if (string.IsNullOrEmpty(newEffect.name))
+            {
+                _foldout.text = property.displayName;
+            }
+            else
+            {
+                _foldout.text = newEffect.name;
+            }
+
+            _foldout.SetValueWithoutNotify(newEffect.isExpanded);
+
+            SerializedProperty nameProp = _serializedProperty.FindPropertyRelative("name");
+            Assert.IsNotNull(nameProp, "name property not found in EffectBase.");
 
             _nameLabel.Unbind();
-            SerializedProperty nameProp = _serializedProperty.FindPropertyRelative("name");
             _nameLabel.TrackPropertyValue(nameProp, this.ChangeEffectName);
 
             _enableToggle.UnregisterValueChangedCallback(this.EnableEffect);
             _enableToggle.RegisterValueChangedCallback(this.EnableEffect);
-            _enableToggle.value = newEffect.enable;
+            _enableToggle.SetValueWithoutNotify(newEffect.enable);
 
             _deleteButton.clicked -= this.RequestDeletion;
             _deleteButton.clicked += this.RequestDeletion;
 
             _imguiContainer.onGUIHandler = this.Render;
-            _imguiContainer.MarkDirtyRepaint();
         }
 
+#endregion
 
+        
         private void Render()
         {
             Assert.IsNotNull(_serializedProperty);
-            Assert.IsNotNull(_enableToggle);
-            
+            Assert.IsNotNull(_foldout);
+
             if (_foldout.value == false)
             {
                 return;
             }
 
             _serializedObject.Update();
-            
+            _serializedProperty.isExpanded = true;
+
+            if (_iconContent is null)
+            {
+                _iconContent = EditorGUIUtility.IconContent("PreMatCylinder");
+                _iconContent.tooltip = _serializedProperty.tooltip;
+                _iconContent.text = "Effect Fields";
+            }
+
+            this.RenderPropertyFieldWithToggle();
+        }
+
+        
+        private void RenderPropertyFieldWithToggle()
+        {
             using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
-            EditorGUILayout.PropertyField(_serializedProperty, true);
+            
+            bool disabled = !_enableToggle.value;
+            
+            using (new EditorGUI.DisabledScope(disabled))
+            {
+                EditorGUILayout.PropertyField(_serializedProperty, _iconContent, true);
+            }
 
             if (check.changed)
             {
+                _imguiContainer.style.height = EditorGUI.GetPropertyHeight(_serializedProperty);
                 _serializedObject.ApplyModifiedProperties();
             }
         }
@@ -95,39 +141,29 @@ namespace ActionBuilder.Tool
         private void RequestDeletion()
         {
             onDeleteRequested?.Invoke(this);
-            EditorUtility.SetDirty(target);
+            EditorUtility.SetDirty(targetObject);
         }
-        
-        
+
+
         private void UpdateEffectExpansion(ChangeEvent<bool> evt)
         {
-            if (evt.newValue)
-            {
-                _imguiContainer.style.height = EditorGUI.GetPropertyHeight(_serializedProperty);
-            }
-            else
-            {
-                _imguiContainer.style.height = 0;
-            }
-            
             _effect.isExpanded = evt.newValue;
-            EditorUtility.SetDirty(target);
+            EditorUtility.SetDirty(targetObject);
         }
 
 
         private void EnableEffect(ChangeEvent<bool> evt)
         {
             _effect.enable = evt.newValue;
-            EditorUtility.SetDirty(target);
+            EditorUtility.SetDirty(targetObject);
         }
-        
-        
+
+
         private void ChangeEffectName(SerializedProperty prop)
         {
             _effect.name = prop.stringValue;
             _foldout.text = prop.stringValue;
-            _serializedObject.Update();
-            EditorUtility.SetDirty(target);
+            EditorUtility.SetDirty(targetObject);
         }
 
 #endregion

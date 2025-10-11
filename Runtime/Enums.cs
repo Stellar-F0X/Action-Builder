@@ -33,12 +33,17 @@ namespace ActionBuilder.Runtime
         // Effect가 설정된 적용 횟수만큼 적용되도, 지속 시간이 남았다면 완료가 안됨.
         // 처음 한번 적용되고, 일정 시간동안 지속되는 Buff나 Debuff Effect에 적합한 Option.
         DurationEnded,
+        
+        // Effect가 설정된 적용 횟수만큼 적용되거나, 지속 시간이 끝나면 완료되는 Option.
+        // CycleCompleted와 DurationEnded의 조합.
+        CycleOrDuration
     }
 
-    public enum EffectPlayOption
+    public enum State
     {
-        Once,
-        Range,
-        Several
+        IdleUntilStart,
+        Started,
+        Updating,
+        Ended
     }
 }
