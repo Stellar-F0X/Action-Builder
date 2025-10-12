@@ -36,8 +36,11 @@ namespace ActionBuilder.Tool
             AssetDatabase.CreateAsset(createdObject, assetPath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            
-            return createdObject as ActionBase;
+
+            ActionBase actionBase = createdObject as ActionBase;
+            Assert.IsNotNull(actionBase);
+            actionBase.OnCreate();
+            return actionBase;
         }
     }
 }

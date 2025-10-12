@@ -33,16 +33,27 @@ namespace ActionBuilder.Tool
 
         private Editor _inspectorEditor;
         private SerializedObject _serializedObject;
+        
+        
+        public ListView actionListView
+        {
+            get { return _actionListView; }
+        }
+        
+        public ListView effectListView
+        {
+            get { return _effectListView; }
+        }
 
 
-            
+
         [MenuItem("Tools/ActionBuilder")]
         public static void OpenWindow()
         {
             ActionBuildEditor wnd = GetWindow<ActionBuildEditor>();
             wnd.titleContent = new GUIContent("Action Builder");
         }
-        
+
 
 
         private void CreateGUI()
@@ -73,9 +84,7 @@ namespace ActionBuilder.Tool
 
             _actionList.AddRange(Resources.LoadAll<ActionBase>("Actions"));
             _actionListView.itemsSource = _actionList;
-            
             _dataView.style.display = DisplayStyle.None;
-            Assert.IsNotNull(_actionList);
         }
 
 
@@ -117,8 +126,13 @@ namespace ActionBuilder.Tool
         private void OnActionSelectionChanged(IEnumerable<object> selected)
         {
             Assert.IsNotNull(_actionListView);
+            
             int idx = _actionListView.selectedIndex;
-            Assert.IsTrue(idx >= 0 && idx < _actionList.Count);
+            
+            if (idx < 0 || idx >= _actionList.Count)
+            {
+                return;
+            }
 
             if (_actionList[idx] == null)
             {
@@ -134,10 +148,10 @@ namespace ActionBuilder.Tool
         private VisualElement BindActionListItem()
         {
             VisualElement rootElement = new VisualElement();
-            
+
             rootElement.style.flexDirection = FlexDirection.Row;
             rootElement.style.alignItems = Align.Center;
-            
+
             rootElement.Add(new Image());
             rootElement.Add(new Label());
             return rootElement;
@@ -152,7 +166,7 @@ namespace ActionBuilder.Tool
             ActionBase action = _actionList[index];
             nameLabel.text = action.name;
             icon.sprite = action.icon;
-            
+
             visualElement.tooltip = action.description;
         }
 
@@ -187,7 +201,8 @@ namespace ActionBuilder.Tool
             _serializedObject.Update();
 
             EffectView view = visualElement.Q<EffectView>();
-            SerializedProperty effectListProp = _serializedObject.FindProperty("_effects");
+            SerializedProperty dataProp = _serializedObject.FindProperty("_actionData");
+            SerializedProperty effectListProp = dataProp.FindPropertyRelative("effects");
             SerializedProperty effectProp = effectListProp.GetArrayElementAtIndex(index);
 
             view.onDeleteRequested -= this.DeleteEffectOnClickedButton;
@@ -205,10 +220,15 @@ namespace ActionBuilder.Tool
             _effectListView.itemsSource.Add(effect);
             _effectListView.RefreshItems();
 
-            ActionBase action = _serializedObject.targetObject as ActionBase;
+            if (_serializedObject.targetObject is not ActionBase action)
+            {
+                action = _actionList[_actionListView.selectedIndex];
+                _serializedObject = new SerializedObject(action);
+            }
+            
             Assert.IsNotNull(action, "action is NullReference");
             effect.referencedAction = action;
-            
+
             _effectListView.style.display = DisplayStyle.Flex;
         }
 
@@ -265,7 +285,7 @@ namespace ActionBuilder.Tool
             {
                 _effectListView.style.display = DisplayStyle.Flex;
             }
-            
+
             _effectListView.RefreshItems();
             this.Repaint();
         }
@@ -308,6 +328,7 @@ namespace ActionBuilder.Tool
             _dataView.style.display = DisplayStyle.None;
             _actionList.RemoveAt(selectedIndex);
             _actionListView.RefreshItems();
+            _actionListView.ClearSelection();
             this.Repaint();
         }
 

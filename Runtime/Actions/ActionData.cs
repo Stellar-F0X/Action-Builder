@@ -1,0 +1,37 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace ActionBuilder.Runtime
+{
+    [Serializable]
+    public struct ActionData
+    {
+        public ActionData(string name)
+        {
+            this.icon = null;
+            this.name = name;
+            this.developName = "";
+            this.tag = "Default";
+            this.description = "";
+            this.cooldownTime = 0f;
+            this.durationType = ActionDuration.Instant;
+            this.usingStatsTemplate = null;
+            this.effects = new List<EffectBase>();
+            this.channelIds = new List<UGUID>();
+        }
+        
+        public Sprite icon;
+        public string developName;
+        public string name;
+        public string tag;
+        public string description;
+        public float cooldownTime;
+        public ActionDuration durationType;
+        public StatSet usingStatsTemplate;
+
+        [SerializeReference]
+        public List<EffectBase> effects;
+        public List<UGUID> channelIds;
+    }
+}

@@ -6,29 +6,14 @@ namespace ActionBuilder.Runtime
 {
     public abstract class ActionBase : ScriptableObject
     {
-        public Sprite icon;
-
-
-        [TextArea(3, 10)]
-        public string description;
-
-        public ActionDuration durationType;
-
-        public StatSet usingStatsTemplate;
-
-
-        [SerializeReference]
-        protected List<EffectBase> _effects = new List<EffectBase>();
-
-
-        [SerializeField]
-        protected List<UGUID> _channelIds = new List<UGUID>();
-
+        [SerializeField, Space(-15)]
+        protected ActionData _actionData;
 
         /// <summary> Runtime only </summary>
         protected List<EventChannelBase> _channels;
 
 
+        
         public ActionController owner
         {
             get;
@@ -40,17 +25,42 @@ namespace ActionBuilder.Runtime
             get;
             set;
         }
+        
+        public Sprite icon
+        {
+            get { return _actionData.icon; }
+        }
+        
+        public string actionName
+        {
+            get { return _actionData.name; }
+        }
+        
+        public string description
+        {
+            get { return _actionData.description; }
+        }
+        
+        public float cooldownTime
+        {
+            get { return _actionData.cooldownTime; }
+        }
 
         public virtual float duration
         {
-            get { return this._effects.Max(e => e.duration); }
+            get { return _actionData.effects.Max(e => e.duration); }
         }
 
         internal List<EffectBase> effects
         {
-            get { return _effects; }
+            get { return _actionData.effects; }
         }
 
+
+        internal void OnCreate()
+        {
+            _actionData = new ActionData(this.name);
+        }
 
 
         internal void Restart() { }

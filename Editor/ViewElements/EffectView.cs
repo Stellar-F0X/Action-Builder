@@ -16,7 +16,6 @@ namespace ActionBuilder.Tool
 
         private SerializedProperty _serializedProperty;
         private SerializedObject _serializedObject;
-
         private IMGUIContainer _imguiContainer;
         private Toggle _enableToggle;
         private Foldout _foldout;
@@ -73,9 +72,9 @@ namespace ActionBuilder.Tool
             }
 
             _foldout.SetValueWithoutNotify(newEffect.isExpanded);
-
+            
             SerializedProperty nameProp = _serializedProperty.FindPropertyRelative("name");
-            Assert.IsNotNull(nameProp, "name property not found in EffectBase.");
+            Assert.IsNotNull(nameProp);
 
             _nameLabel.Unbind();
             _nameLabel.TrackPropertyValue(nameProp, this.ChangeEffectName);

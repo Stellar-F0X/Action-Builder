@@ -31,7 +31,8 @@ namespace ActionBuilder.Tool
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             _serializedObject = property.serializedObject;
-            SerializedProperty statSetTemplateProp = _serializedObject.FindProperty("usingStatsTemplate");
+            SerializedProperty actionDataProp = _serializedObject.FindProperty("_actionData");
+            SerializedProperty statSetTemplateProp = actionDataProp.FindPropertyRelative("usingStatsTemplate");
 
 
             if (statSetTemplateProp.objectReferenceValue == null)
