@@ -1,3 +1,6 @@
+using System;
+using UnityEngine;
+
 namespace ActionBuilder.Runtime
 {
     public enum AnimationEventTiming
@@ -8,6 +11,7 @@ namespace ActionBuilder.Runtime
         End, 
         InTime
     };
+    
 
     public enum ActionDuration
     {
@@ -15,6 +19,7 @@ namespace ActionBuilder.Runtime
         Infinite,
         Duration
     }
+    
 
     public enum SignalReceiveType
     {
@@ -23,22 +28,20 @@ namespace ActionBuilder.Runtime
         Range
     }
     
+    
+    /// <summary> Options determining when an effect should be considered finished </summary>
     public enum EffectFinishOption
     {
-        // Effect가 설정된 적용 횟수만큼 적용된다면 완료되는 Option.
-        // 단, 이 Option은 지속 시간(=Duration)이 끝나도 완료됨.
-        // 타격을 입힌다던가, 치료를 해주는 Effect에 적합Option
-        CycleCompleted,
-        // 지속 시간이 끝나면 완료되는 Option.
-        // Effect가 설정된 적용 횟수만큼 적용되도, 지속 시간이 남았다면 완료가 안됨.
-        // 처음 한번 적용되고, 일정 시간동안 지속되는 Buff나 Debuff Effect에 적합한 Option.
-        DurationEnded,
+        /// <summary> 지속 시간이 끝나면 완료되는 Option, 설정된 적용 횟수만큼 적용되도, 지속 시간이 남았다면 완료가 안됨. </summary>
+        [Tooltip("Effect is finished when duration ends. Even if apply count is met, effect won't finish until duration expires.")]
+        DurationEnded = 0,
         
-        // Effect가 설정된 적용 횟수만큼 적용되거나, 지속 시간이 끝나면 완료되는 Option.
-        // CycleCompleted와 DurationEnded의 조합.
-        CycleOrDuration
+        /// <summary> Effect가 설정된 적용 횟수만큼 적용된다면 완료되는 Option, 이 Option은 지속 시간이 끝나도 완료됨. </summary>
+        [Tooltip("Effect is finished when apply count is met. Effect will finish when apply count is met even if duration remains.")]
+        ApplyCompleted = 1,
     }
 
+    
     public enum ActionState
     {
         Idle,
@@ -46,5 +49,29 @@ namespace ActionBuilder.Runtime
         Paused,
         Finished,
         Cancelled
+    }
+
+
+    public enum ApplyPolicy
+    {
+        Auto,
+        Manual
+    }
+    
+    
+    /// <summary> 차징 타입을 정의하는 열거형 </summary>
+    public enum ChargeType
+    {
+        /// <summary>토글 방식: 한 번 누르면 시작, 다시 누르면 중단</summary>
+        Toggle
+    }
+
+    /// <summary> 차징 완료 시 동작을 정의하는 열거형 </summary>
+    public enum ChargeCompletionBehavior
+    {
+        /// <summary>차징이 완료되면 취소됨</summary>
+        Cancel,
+        /// <summary>차징이 완료되면 시전됨</summary>
+        Execute
     }
 }

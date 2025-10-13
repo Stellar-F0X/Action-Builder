@@ -11,7 +11,7 @@ namespace ActionBuilder.Runtime
         {
             this.icon = null;
             this.name = name;
-            this.developName = "";
+            this.hash = Animator.StringToHash(name);
             this.tag = "Default";
             this.description = "";
             this.effects = new List<EffectBase>();
@@ -19,7 +19,7 @@ namespace ActionBuilder.Runtime
         }
         
         public Sprite icon;
-        public string developName;
+        public int hash;
         public string name;
         public string tag;
         public string description;

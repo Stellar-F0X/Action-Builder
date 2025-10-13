@@ -4,12 +4,13 @@ using UnityEngine;
 namespace ActionBuilder.Runtime
 {
     [Serializable]
-    public struct EffectDurationData
+    public struct EffectPeriodData
     {
         [Min(0)]
         public float duration;
         
         [Min(1)]
-        public int maxApplicationCount;
+        public int applyCount;
+        public float applyInterval;
     }
 }

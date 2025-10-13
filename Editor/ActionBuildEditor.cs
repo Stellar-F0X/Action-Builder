@@ -220,7 +220,7 @@ namespace ActionBuilder.Tool
             _effectListView.itemsSource.Add(effect);
             _effectListView.RefreshItems();
 
-            ActionBase action = _serializedObject.targetObject as ActionBase;
+            ActionBase action = _serializedObject?.targetObject as ActionBase;
             
             if (_serializedObject is null)
             {

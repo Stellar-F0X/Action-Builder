@@ -24,15 +24,11 @@ namespace ActionBuilder.Tool
 
         private Rect _modifierRect;
 
-        private SerializedObject _serializedObject;
-
 
         
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            _serializedObject = property.serializedObject;
-            SerializedProperty actionDataProp = _serializedObject.FindProperty("_actionData");
-            SerializedProperty statSetTemplateProp = actionDataProp.FindPropertyRelative("usingStatsTemplate");
+            SerializedProperty statSetTemplateProp = property.serializedObject.FindProperty("usingStatsTemplate");
 
 
             if (statSetTemplateProp.objectReferenceValue == null)
@@ -73,13 +69,19 @@ namespace ActionBuilder.Tool
 
             SerializedProperty modifierTypeProp = property.FindPropertyRelative("modifierType");
             Assert.IsNotNull(modifierTypeProp);
+            
+            SerializedProperty typeNameProp = property.FindPropertyRelative("typeName");
+            Assert.IsNotNull(typeNameProp);
 
+            StatSet statSet = statSetTemplateProp.objectReferenceValue as StatSet;
+            Assert.IsNotNull(statSet);
+
+            typeNameProp.stringValue ??= statSet.keyType.AssemblyQualifiedName;
 
             _statKeyRect = new Rect(position.x, position.y + _lineHeight, position.width, EditorGUIUtility.singleLineHeight);
             _valueRect = new Rect(position.x, position.y + _lineHeight * 2, position.width, EditorGUIUtility.singleLineHeight);
             _priorityRect = new Rect(position.x, position.y + _lineHeight * 3, position.width, EditorGUIUtility.singleLineHeight);
             _modifierRect = new Rect(position.x, position.y + _lineHeight * 4, position.width, EditorGUIUtility.singleLineHeight);
-
             
             
             using (EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope())
@@ -88,7 +90,6 @@ namespace ActionBuilder.Tool
                 int selectedIdx = EditorGUI.Popup(_statKeyRect, "Key", index, keys);
                 
                 Assert.IsTrue(selectedIdx >= 0 && selectedIdx < keys.Length);
-                
                 keyProp.stringValue = keys[selectedIdx];
                 
                 
@@ -97,14 +98,12 @@ namespace ActionBuilder.Tool
                 EditorGUI.PropertyField(_priorityRect, priorityProp);
                 
                 EditorGUI.PropertyField(_modifierRect, modifierTypeProp);
-
                 
-                if (check.changed == false)
+                
+                if (check.changed)
                 {
-                    return;
+                    property.serializedObject.ApplyModifiedProperties();
                 }
-                
-                _serializedObject.ApplyModifiedProperties();
             }
 
 

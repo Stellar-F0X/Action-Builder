@@ -1,4 +1,3 @@
-using System;
 using ActionBuilder.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -12,12 +11,11 @@ namespace ActionBuilder.Tool
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             property.serializedObject.Update();
-
-
+            
             SerializedProperty iconProp = property.FindPropertyRelative("icon");
             SerializedProperty nameProp = property.FindPropertyRelative("name");
             SerializedProperty tagProp = property.FindPropertyRelative("tag");
-            SerializedProperty developNameProp = property.FindPropertyRelative("developName");
+            SerializedProperty hashProp = property.FindPropertyRelative("hash");
             SerializedProperty descriptionProp = property.FindPropertyRelative("description");
 
 
@@ -25,9 +23,13 @@ namespace ActionBuilder.Tool
             {
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    this.RenameActionAsset(property, nameProp);
+                    this.RenameActionAsset(property, nameProp, hashProp);
 
-                    developNameProp.stringValue = EditorGUILayout.TextField("Development Name", developNameProp.stringValue);
+                    using (new EditorGUI.DisabledGroupScope(true))
+                    {
+                        EditorGUILayout.IntField("Hash", hashProp.intValue);
+                    }
+                    
                     tagProp.stringValue = EditorGUILayout.TextField("Tag", tagProp.stringValue);
                 }
 
@@ -74,10 +76,11 @@ namespace ActionBuilder.Tool
 
 
 
-        private void RenameActionAsset(SerializedProperty property, SerializedProperty nameProp)
+        private void RenameActionAsset(SerializedProperty property, SerializedProperty nameProp, SerializedProperty hashProp)
         {
             using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
 
+            string previousName = nameProp.stringValue;
             string newName = EditorGUILayout.DelayedTextField("Name", nameProp.stringValue);
 
             if (check.changed == false)
@@ -95,10 +98,12 @@ namespace ActionBuilder.Tool
             if (string.IsNullOrEmpty(message))
             {
                 targetObject.name = newName;
+                hashProp.intValue = Animator.StringToHash(newName);
                 EditorUtility.SetDirty(targetObject);
             }
             else
             {
+                nameProp.stringValue = previousName;
                 Debug.LogError($"Rename failed: {message}");
             }
 

@@ -27,9 +27,15 @@ namespace ActionBuilder.Runtime
 
         protected virtual void Awake()
         {
-            _statsSetKeyType = _statSetTemplate?.GetType();
-            _runtimeStat = _statSetTemplate?.CreateInstance();
+            if (_statSetTemplate == null)
+            {
+                return;
+            }
+            
+            _statsSetKeyType = _statSetTemplate.keyType;
+            _runtimeStat = _statSetTemplate.CreateInstance();
         }
+        
 
 
         public Stat GetStat<TKey>(TKey key)

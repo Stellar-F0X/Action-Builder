@@ -12,5 +12,8 @@ namespace ActionBuilder.Runtime
         [Min(0)]
         public int priority;
         public StatModifierType modifierType;
+
+        [HideInInspector]
+        public string typeName;
     }
 }
