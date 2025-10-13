@@ -10,6 +10,6 @@ namespace ActionBuilder.Runtime
         public object key;
         
         [SerializeReference]
-        public StatModifier modifier;
+        public DefaultStatModifier modifier;
     }
 }

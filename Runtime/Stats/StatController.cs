@@ -29,7 +29,7 @@ namespace ActionBuilder.Runtime
 
         public Type keyType
         {
-            get { return _statsSetKeyType?.GenericTypeArguments[0]; }
+            get { return _statsSetKeyType; }
         }
 
 

@@ -9,6 +9,9 @@ namespace ActionBuilder.Runtime
     [Serializable]
     public class Stat : ICloneable
     {
+        private readonly static object _RemoveLock = new object();
+        
+        
         [SerializeField]
         protected float _baseValue;
         protected bool _changedModifiers = true; //최초 한 번만.
@@ -18,6 +21,8 @@ namespace ActionBuilder.Runtime
 
         [SerializeReference, ReadOnly]
         private List<StatModifierBase> _modifiers = new List<StatModifierBase>();
+        
+
 
 
         public virtual float value
@@ -68,9 +73,13 @@ namespace ActionBuilder.Runtime
         }
 
 
-        public void AddModifiers(StatModifierBase[] modifier)
+        public void AddModifiers(StatModifierBase[] modifiers)
         {
-            _modifiers.AddRange(modifier);
+            foreach (StatModifierBase modifier in modifiers)
+            {
+                this.AddModifier(modifier);
+            }
+            
             _changedModifiers = true;
         }
 
@@ -78,6 +87,8 @@ namespace ActionBuilder.Runtime
         public void AddModifier(StatModifierBase modifier)
         {
             _modifiers.Add(modifier);
+            modifier.basedStat = this;
+            modifier.OnStatModifierAttached();
             _changedModifiers = true;
         }
 
@@ -85,7 +96,21 @@ namespace ActionBuilder.Runtime
         public bool RemoveModifier(StatModifierBase modifier)
         {
             _changedModifiers = _modifiers.Remove(modifier);
+            modifier.OnStatModifierDetached();
+            modifier.basedStat = null;
             return _changedModifiers;
+        }
+
+
+        public bool RemoveModifierThreadSafe(StatModifierBase modifier)
+        {
+            lock (_RemoveLock)
+            {
+                _changedModifiers = _modifiers.Remove(modifier);
+                modifier.OnStatModifierDetached();
+                modifier.basedStat = null;
+                return _changedModifiers;
+            }
         }
 
 

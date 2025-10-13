@@ -49,6 +49,8 @@ namespace ActionBuilder.Runtime
         /// <summary> 이벤트 채널 Dictionary </summary>
         private readonly Dictionary<UGUID, EventChannelBase> _eventChannels = new Dictionary<UGUID, EventChannelBase>();
 
+        public bool debug;
+        
         /// <summary> 등록된 모든 Action들의 SO 원본 리스트 (Inspector 설정용) </summary>
         [SerializeField]
         private List<ActionBase> _actionTemplates = new List<ActionBase>();
@@ -241,7 +243,11 @@ namespace ActionBuilder.Runtime
             // 이벤트 발생
             this.onActionRegistered?.Invoke(actionInstance);
 
-            Debug.Log($"[ActionController] Action '{actionName}' registered successfully");
+            if (debug)
+            {
+                Debug.Log($"[ActionController] Action '{actionName}' registered successfully");
+            }
+            
             return true;
         }
 
@@ -595,7 +601,11 @@ namespace ActionBuilder.Runtime
 
             this.onEffectRegistered?.Invoke(action, effect);
 
-            Debug.Log($"[ActionController] Effect '{effect.name}' registered to Action '{actionName}'");
+            if (debug)
+            {
+                Debug.Log($"[ActionController] Effect '{effect.name}' registered to Action '{actionName}'");
+            }
+            
             return true;
         }
 
@@ -625,7 +635,11 @@ namespace ActionBuilder.Runtime
 
             this.onEffectRegistered?.Invoke(action, effect);
 
-            Debug.Log($"[ActionController] Effect '{effect.name}' registered to Action '{action.actionName}'");
+            if (debug)
+            {
+                Debug.Log($"[ActionController] Effect '{effect.name}' registered to Action '{action.actionName}'");
+            }
+            
             return true;
         }
 
@@ -761,7 +775,11 @@ namespace ActionBuilder.Runtime
 
             action.internalEffects.Clear();
 
-            Debug.Log($"[ActionController] {removedCount} effects cleared from Action '{action.actionName}'");
+            if (debug)
+            {
+                Debug.Log($"[ActionController] {removedCount} effects cleared from Action '{action.actionName}'");
+            }
+            
             return removedCount;
         }
 

@@ -6,65 +6,66 @@ namespace ActionBuilder.Runtime
     [Serializable]
     public abstract class StatModifierBase
     {
-        public StatModifierBase() { }
+        protected StatModifierBase() { }
 
         
-        protected StatModifierBase(string name, float operand, int priority, StatModifierType type)
+        protected StatModifierBase(string name, float operand, int priority, StatModifierType modifierType)
         {
-            this._name = name;
-            this._type = type;
-            this._priority = priority;
-            this._operand = operand;
+            this.name = name;
+            this.modifierType = modifierType;
+            this.priority = priority;
+            this.operand = operand;
+        }
+        
+        public string name;
+        
+        public int priority;
+        
+        public StatModifierType modifierType;
+        
+        public float operand;
+
+
+        internal Stat basedStat
+        {
+            set;
+            get;
         }
 
-        [SerializeField]
-        protected string _name;
 
-        [SerializeField]
-        protected int _priority;
-
-        [SerializeField]
-        protected StatModifierType _type;
-
-        [SerializeField]
-        protected float _operand;
-
-        protected Stat _basedStat;
-
-
-        public float operand
+        public void Reset()
         {
-            get { return _operand; }
-        }
-
-        public string name
-        {
-            get { return _name; }
-        }
-
-        public int priority
-        {
-            get { return _priority; }
-        }
-
-        public StatModifierType modifierType
-        {
-            get { return _type; }
+            name = string.Empty;
+            priority = 0;
+            modifierType = default;
+            operand = 0f;
+            basedStat = null;
+            
+            this.OnReset();
         }
 
 
         public virtual float Calculate(float leftValue)
         {
-            switch (this._type)
+            switch (this.modifierType)
             {
-                case StatModifierType.Override: return _operand;
+                case StatModifierType.Override: return operand;
 
-                case StatModifierType.Additive: return leftValue + _operand;
+                case StatModifierType.Additive: return leftValue + operand;
 
-                case StatModifierType.Multiplicative: return leftValue * _operand;
+                case StatModifierType.Multiplicative: return leftValue * operand;
             }
 
             return leftValue;
         }
+        
+        
+        protected virtual void OnReset () { }
+        
+        
+        public virtual void OnStatModifierAttached() { }
+        
+        
+        public virtual void OnStatModifierDetached() { }
     }
 }

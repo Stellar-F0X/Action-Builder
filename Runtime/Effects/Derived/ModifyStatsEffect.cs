@@ -102,6 +102,7 @@ namespace ActionBuilder.Runtime
             {
                 Stat stat = _cachedStatController.GetStat(selector.statKey);
                 stat?.RemoveModifier(selector.modifier);
+                StatModifierPool.Release(selector.modifier);
             }
         }
     }
