@@ -34,10 +34,10 @@ namespace ActionBuilder.Runtime
         /// <summary> Effect가 Action에서 제거될 때 발생 </summary>
         public event Action<ActionBase, EffectBase> onEffectUnregistered;
 
-        /// <summary> 런타임 Action 인스턴스들의 Dictionary (key: actionName string) </summary>
+        /// <summary> 런타임 Action 인스턴스들의 Dictionary (statKey: actionName string) </summary>
         private readonly Dictionary<string, ActionBase> _actionInstances = new Dictionary<string, ActionBase>();
 
-        /// <summary> 런타임 Action 인스턴스들의 Dictionary (key: actionName hash) </summary>
+        /// <summary> 런타임 Action 인스턴스들의 Dictionary (statKey: actionName hash) </summary>
         private readonly Dictionary<int, ActionBase> _actionInstancesByHash = new Dictionary<int, ActionBase>();
 
         /// <summary> 현재 실행 중인 Action들의 리스트 </summary>

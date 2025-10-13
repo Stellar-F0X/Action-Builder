@@ -13,16 +13,14 @@ namespace ActionBuilder.Tool
     {
         private readonly float _lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-        private readonly float _totalHeight = (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 4;
+        private readonly float _totalHeight = (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 2;
 
 
         private Rect _statKeyRect;
         
-        private Rect _valueRect;
+        private Rect _modifierRect;
 
         private Rect _priorityRect;
-
-        private Rect _modifierRect;
 
 
         
@@ -58,19 +56,13 @@ namespace ActionBuilder.Tool
             }
 
 
-            SerializedProperty keyProp = property.FindPropertyRelative("key");
+            SerializedProperty keyProp = property.FindPropertyRelative("statKey");
             Assert.IsNotNull(keyProp);
             
-            SerializedProperty valueProp = property.FindPropertyRelative("value");
-            Assert.IsNotNull(valueProp);
-
-            SerializedProperty priorityProp = property.FindPropertyRelative("priority");
-            Assert.IsNotNull(priorityProp);
-
-            SerializedProperty modifierTypeProp = property.FindPropertyRelative("modifierType");
-            Assert.IsNotNull(modifierTypeProp);
+            SerializedProperty modifierProp = property.FindPropertyRelative("modifier");
+            Assert.IsNotNull(modifierProp);
             
-            SerializedProperty typeNameProp = property.FindPropertyRelative("typeName");
+            SerializedProperty typeNameProp = property.FindPropertyRelative("keyTypeName");
             Assert.IsNotNull(typeNameProp);
 
             StatSet statSet = statSetTemplateProp.objectReferenceValue as StatSet;
@@ -79,9 +71,7 @@ namespace ActionBuilder.Tool
             typeNameProp.stringValue ??= statSet.keyType.AssemblyQualifiedName;
 
             _statKeyRect = new Rect(position.x, position.y + _lineHeight, position.width, EditorGUIUtility.singleLineHeight);
-            _valueRect = new Rect(position.x, position.y + _lineHeight * 2, position.width, EditorGUIUtility.singleLineHeight);
-            _priorityRect = new Rect(position.x, position.y + _lineHeight * 3, position.width, EditorGUIUtility.singleLineHeight);
-            _modifierRect = new Rect(position.x, position.y + _lineHeight * 4, position.width, EditorGUIUtility.singleLineHeight);
+            _modifierRect = new Rect(position.x, position.y + _lineHeight * 2, position.width, EditorGUIUtility.singleLineHeight);
             
             
             using (EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope())
@@ -92,13 +82,7 @@ namespace ActionBuilder.Tool
                 Assert.IsTrue(selectedIdx >= 0 && selectedIdx < keys.Length);
                 keyProp.stringValue = keys[selectedIdx];
                 
-                
-                EditorGUI.PropertyField(_valueRect, valueProp);
-                
-                EditorGUI.PropertyField(_priorityRect, priorityProp);
-                
-                EditorGUI.PropertyField(_modifierRect, modifierTypeProp);
-                
+                EditorGUI.PropertyField(_modifierRect, modifierProp);
                 
                 if (check.changed)
                 {
@@ -173,7 +157,11 @@ namespace ActionBuilder.Tool
         {
             if (property.isExpanded)
             {
-                return _lineHeight * 5 + EditorGUIUtility.standardVerticalSpacing;
+                SerializedProperty modifierProp = property.FindPropertyRelative("modifier");
+                float height = EditorGUI.GetPropertyHeight(modifierProp);
+                height += EditorGUIUtility.standardVerticalSpacing;
+                height += _lineHeight * 2;
+                return height;
             }
             else
             {

@@ -48,7 +48,7 @@ namespace ActionBuilder.Tool
                 return param;
             }
 
-            throw new StatKeyCastException($"{typeof(StatSetDrawer)}: Failed to convert value '{param}' to stat key of type '{type.FullName}'.");
+            throw new StatKeyCastException($"{typeof(StatSetDrawer)}: Failed to convert value '{param}' to stat statKey of type '{type.FullName}'.");
         }
 
 

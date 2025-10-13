@@ -6,14 +6,12 @@ namespace ActionBuilder.Runtime
     [Serializable]
     public struct StatModifierSelector
     {
-        public string key;
-        public float value;
-        
-        [Min(0)]
-        public int priority;
-        public StatModifierType modifierType;
+        public string statKey;
+
+        [SerializeReference, SubclassSelector]
+        public StatModifierBase modifier;
 
         [HideInInspector]
-        public string typeName;
+        public string keyTypeName;
     }
 }

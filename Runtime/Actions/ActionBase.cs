@@ -93,6 +93,18 @@ namespace ActionBuilder.Runtime
             get;
             set;
         }
+        
+        
+        public Transform transform
+        {
+            get { return this.owner.transform; }
+        }
+
+        
+        public GameObject gameObject
+        {
+            get { return this.owner.gameObject; }
+        }
 
 
         public Sprite icon
@@ -223,6 +235,13 @@ namespace ActionBuilder.Runtime
 
             this.OnStart();
             this.onStarted?.Invoke(this);
+
+            for (int index = 0; index < effects.Count; ++index)
+            {
+                EffectBase currentEffect = effects[index];
+                currentEffect.OnActionStart();
+            }
+            
             return true;
         }
 
@@ -238,6 +257,12 @@ namespace ActionBuilder.Runtime
             this._currentState = ActionState.Paused;
             this.OnPause();
             this.onPaused?.Invoke(this);
+            
+            for (int index = 0; index < effects.Count; ++index)
+            {
+                EffectBase currentEffect = effects[index];
+                currentEffect.OnActionPause();
+            }
         }
 
 
@@ -252,6 +277,12 @@ namespace ActionBuilder.Runtime
             this._currentState = ActionState.Playing;
             this.OnResume();
             this.onResumed?.Invoke(this);
+            
+            for (int index = 0; index < effects.Count; ++index)
+            {
+                EffectBase currentEffect = effects[index];
+                currentEffect.OnActionResume();
+            }
         }
 
 
@@ -388,6 +419,12 @@ namespace ActionBuilder.Runtime
             this.OnEnd();
             this.ResetEffects();
             this.onEnded?.Invoke(this);
+            
+            for (int index = 0; index < effects.Count; ++index)
+            {
+                EffectBase currentEffect = effects[index];
+                currentEffect.OnActionEnd();
+            }
         }
 
 

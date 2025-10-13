@@ -63,6 +63,21 @@ namespace ActionBuilder.Runtime
             internal set { _referencedAction = value; }
         }
 
+        public StatController statController
+        {
+            get { return _referencedAction.statController; }
+        }
+
+        public Transform transform
+        {
+            get { return _referencedAction.owner.transform; }
+        }
+
+        public GameObject gameObject
+        {
+            get { return _referencedAction.owner.gameObject; }
+        }
+
         public bool isApplied
         {
             get { return _applied; }
@@ -219,15 +234,27 @@ namespace ActionBuilder.Runtime
         public virtual void OnValidateEffect() { }
 
 
-        public virtual void OnPause() { }
 
 
         public virtual void OnApply() { }
 
 
+        public virtual void OnUpdate(float deltaTime) { }
+
+
         public virtual void OnRelease() { }
 
 
-        public virtual void OnUpdate(float deltaTime) { }
+        /// <summary>  </summary>
+        public virtual void OnActionPause() { }
+
+
+        public virtual void OnActionResume() { }
+
+
+        public virtual void OnActionStart() { }
+
+
+        public virtual void OnActionEnd() { }
     }
 }
