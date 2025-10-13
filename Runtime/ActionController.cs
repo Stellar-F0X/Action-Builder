@@ -53,6 +53,7 @@ namespace ActionBuilder.Runtime
         [SerializeField]
         private List<ActionBase> _actionTemplates = new List<ActionBase>();
 
+
 #region Properties
 
         /// <summary> 등록된 모든 Action 인스턴스들 (읽기 전용) </summary>
@@ -61,11 +62,13 @@ namespace ActionBuilder.Runtime
             get { return _actionInstances; }
         }
 
+
         /// <summary> 등록된 모든 Action 인스턴스들 해시 Dictionary (읽기 전용) </summary>
         public IReadOnlyDictionary<int, ActionBase> actionInstancesByHash
         {
             get { return _actionInstancesByHash; }
         }
+
 
         /// <summary> 현재 실행 중인 Action들 (읽기 전용) </summary>
         public IReadOnlyList<ActionBase> activeActions
@@ -73,11 +76,13 @@ namespace ActionBuilder.Runtime
             get { return _activeActions; }
         }
 
+
         /// <summary> 등록된 Action 개수 </summary>
         public int actionCount
         {
             get { return _actionInstances.Count; }
         }
+
 
         /// <summary> 실행 중인 Action 개수 </summary>
         public int activeActionCount
@@ -87,6 +92,7 @@ namespace ActionBuilder.Runtime
 
 #endregion
 
+
         private void Awake()
         {
             this._actionInstances.Clear();
@@ -95,6 +101,7 @@ namespace ActionBuilder.Runtime
             this._finishedActions.Clear();
             this._eventChannels.Clear();
         }
+
 
         private void Start()
         {
@@ -113,6 +120,7 @@ namespace ActionBuilder.Runtime
                 this.RegisterAction(template);
             }
         }
+
 
         private void Update()
         {
@@ -145,6 +153,7 @@ namespace ActionBuilder.Runtime
             _finishedActions.Clear();
         }
 
+
         private void OnDestroy()
         {
             // 모든 Action 취소
@@ -174,6 +183,7 @@ namespace ActionBuilder.Runtime
             _eventChannels.Clear();
         }
 
+
         /// <summary> 컨트롤러의 모든 이벤트 정리 </summary>
         public void ClearAllControllerEvents()
         {
@@ -187,6 +197,7 @@ namespace ActionBuilder.Runtime
             this.onEffectRegistered = null;
             this.onEffectUnregistered = null;
         }
+
 
 #region Action Management
 
@@ -208,7 +219,7 @@ namespace ActionBuilder.Runtime
                 Debug.LogWarning($"[ActionController] Action '{actionName}' is already registered");
                 return false;
             }
-            
+
             // SO를 런타임 인스턴스로 복제
             ActionBase actionInstance = Object.Instantiate(actionTemplate);
             actionInstance.name = actionName;
@@ -234,6 +245,7 @@ namespace ActionBuilder.Runtime
             return true;
         }
 
+
         /// <summary> Action을 컨트롤러에 등록 (문자열 이름으로) </summary>
         /// <param name="actionName">등록할 Action 이름</param>
         /// <returns>등록 성공 여부</returns>
@@ -250,6 +262,7 @@ namespace ActionBuilder.Runtime
             Debug.LogError($"[ActionController] Action template '{actionName}' not found in templates list");
             return false;
         }
+
 
         /// <summary> Action을 컨트롤러에 등록 (해시로) </summary>
         /// <param name="actionHash">등록할 Action 해시</param>
@@ -268,9 +281,7 @@ namespace ActionBuilder.Runtime
             return false;
         }
 
-        /// <summary> Action을 컨트롤러에서 제거 </summary>
-        /// <param name="actionTemplate">제거할 Action 템플릿</param>
-        /// <returns>제거 성공 여부</returns>
+
         /// <summary> Action을 컨트롤러에서 제거 </summary>
         /// <param name="actionTemplate">제거할 Action 템플릿</param>
         /// <returns>제거 성공 여부</returns>
@@ -283,7 +294,7 @@ namespace ActionBuilder.Runtime
             }
 
             string actionName = actionTemplate.actionName;
-            int actionHash = actionTemplate.hash; // Animator.StringToHash(actionName) 대신 actionTemplate.hash 사용
+            int actionHash = actionTemplate.hash;
 
             if (_actionInstances.TryGetValue(actionName, out ActionBase actionInstance) == false)
             {
@@ -324,6 +335,7 @@ namespace ActionBuilder.Runtime
             return true;
         }
 
+
         /// <summary> Action을 컨트롤러에서 제거 (문자열 이름으로) </summary>
         /// <param name="actionName">제거할 Action 이름</param>
         /// <returns>제거 성공 여부</returns>
@@ -337,6 +349,7 @@ namespace ActionBuilder.Runtime
             Debug.LogWarning($"[ActionController] Action '{actionName}' not found for unregistration");
             return false;
         }
+
 
         /// <summary> Action을 컨트롤러에서 제거 (해시로) </summary>
         /// <param name="actionHash">제거할 Action 해시</param>
@@ -352,6 +365,7 @@ namespace ActionBuilder.Runtime
             return false;
         }
 
+
         /// <summary> 등록된 Action 가져오기 </summary>
         /// <param name="actionName">Action 이름</param>
         /// <returns>Action 인스턴스 또는 null</returns>
@@ -359,6 +373,7 @@ namespace ActionBuilder.Runtime
         {
             return _actionInstances.GetValueOrDefault(actionName);
         }
+
 
         /// <summary> 등록된 Action 가져오기 (해시로) </summary>
         /// <param name="actionHash">Action 해시</param>
@@ -368,6 +383,7 @@ namespace ActionBuilder.Runtime
             return _actionInstancesByHash.GetValueOrDefault(actionHash);
         }
 
+
         /// <summary> 등록된 Action 존재 여부 확인 </summary>
         /// <param name="actionName">Action 이름</param>
         /// <returns>존재 여부</returns>
@@ -375,6 +391,7 @@ namespace ActionBuilder.Runtime
         {
             return _actionInstances.ContainsKey(actionName);
         }
+
 
         /// <summary> 등록된 Action 존재 여부 확인 (해시로) </summary>
         /// <param name="actionHash">Action 해시</param>
@@ -385,6 +402,7 @@ namespace ActionBuilder.Runtime
         }
 
 #endregion
+
 
 #region Action Execution
 
@@ -412,6 +430,7 @@ namespace ActionBuilder.Runtime
             return success;
         }
 
+
         /// <summary> Action 실행 (해시로) </summary>
         /// <param name="actionHash">실행할 Action 해시</param>
         /// <param name="force">강제 실행 여부</param>
@@ -436,6 +455,7 @@ namespace ActionBuilder.Runtime
             return success;
         }
 
+
         /// <summary> Action 일시정지 </summary>
         /// <param name="actionName">일시정지할 Action 이름</param>
         public void PauseAction(string actionName)
@@ -444,6 +464,7 @@ namespace ActionBuilder.Runtime
             Debug.Assert(action, "Not found action");
             action?.Pause();
         }
+
 
         /// <summary> Action 일시정지 (해시로) </summary>
         /// <param name="actionHash">일시정지할 Action 해시</param>
@@ -454,6 +475,7 @@ namespace ActionBuilder.Runtime
             action?.Pause();
         }
 
+
         /// <summary> Action 재개 </summary>
         /// <param name="actionName">재개할 Action 이름</param>
         public void ResumeAction(string actionName)
@@ -462,6 +484,7 @@ namespace ActionBuilder.Runtime
             Debug.Assert(action, "Not found action");
             action?.Resume();
         }
+
 
         /// <summary> Action 재개 (해시로) </summary>
         /// <param name="actionHash">재개할 Action 해시</param>
@@ -472,6 +495,7 @@ namespace ActionBuilder.Runtime
             action?.Resume();
         }
 
+
         /// <summary> Action 취소 </summary>
         /// <param name="actionName">취소할 Action 이름</param>
         public void CancelAction(string actionName)
@@ -481,6 +505,7 @@ namespace ActionBuilder.Runtime
             action?.Cancel();
         }
 
+
         /// <summary> Action 취소 (해시로) </summary>
         /// <param name="actionHash">취소할 Action 해시</param>
         public void CancelAction(int actionHash)
@@ -489,6 +514,7 @@ namespace ActionBuilder.Runtime
             Debug.Assert(action, "Not found action");
             action?.Cancel();
         }
+
 
         /// <summary> 모든 활성 Action 일시정지 </summary>
         public void PauseAllActions()
@@ -503,6 +529,7 @@ namespace ActionBuilder.Runtime
                 action.Pause();
             }
         }
+
 
         /// <summary> 모든 일시정지된 Action 재개 </summary>
         public void ResumeAllActions()
@@ -523,6 +550,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
+
         /// <summary> 모든 활성 Action 취소 </summary>
         public void CancelAllActions()
         {
@@ -538,6 +566,7 @@ namespace ActionBuilder.Runtime
         }
 
 #endregion
+
 
 #region Effect Management
 
@@ -570,6 +599,7 @@ namespace ActionBuilder.Runtime
             return true;
         }
 
+
         /// <summary> Action에 Effect 동적 등록 (해시로) </summary>
         /// <param name="actionHash">대상 Action 해시</param>
         /// <param name="effect">등록할 Effect</param>
@@ -598,6 +628,7 @@ namespace ActionBuilder.Runtime
             Debug.Log($"[ActionController] Effect '{effect.name}' registered to Action '{action.actionName}'");
             return true;
         }
+
 
         /// <summary> Action에서 Effect 제거 </summary>
         /// <param name="actionName">대상 Action 이름</param>
@@ -636,6 +667,7 @@ namespace ActionBuilder.Runtime
             return removed;
         }
 
+
         /// <summary> Action에서 Effect 제거 (해시로) </summary>
         /// <param name="actionHash">대상 Action 해시</param>
         /// <param name="effect">제거할 Effect</param>
@@ -673,6 +705,7 @@ namespace ActionBuilder.Runtime
             return removed;
         }
 
+
         /// <summary> Action의 모든 Effect 제거 </summary>
         /// <param name="actionName">대상 Action 이름</param>
         /// <returns>제거된 Effect 개수</returns>
@@ -701,6 +734,7 @@ namespace ActionBuilder.Runtime
             Debug.Log($"[ActionController] {removedCount} effects cleared from Action '{actionName}'");
             return removedCount;
         }
+
 
         /// <summary> Action의 모든 Effect 제거 (해시로) </summary>
         /// <param name="actionHash">대상 Action 해시</param>
@@ -733,12 +767,14 @@ namespace ActionBuilder.Runtime
 
 #endregion
 
+
 #region Action Event Handlers
 
         private void HandleActionStarted(ActionBase action)
         {
             this.onActionStarted?.Invoke(action);
         }
+
 
         private void HandleActionEnded(ActionBase action)
         {
@@ -750,15 +786,18 @@ namespace ActionBuilder.Runtime
             this.onActionEnded?.Invoke(action);
         }
 
+
         private void HandleActionPaused(ActionBase action)
         {
             this.onActionPaused?.Invoke(action);
         }
 
+
         private void HandleActionResumed(ActionBase action)
         {
             this.onActionResumed?.Invoke(action);
         }
+
 
         private void HandleActionCancelled(ActionBase action)
         {
