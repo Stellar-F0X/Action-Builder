@@ -7,31 +7,36 @@ namespace ActionBuilder.Runtime
     public abstract class EffectBase
     {
         public event Action<EffectBase> onBeforeApply;
+        
         public event Action<EffectBase> onAfterApply;
-
+        
         public event Action<EffectBase> onBeforeRelease;
+        
         public event Action<EffectBase> onAfterRelease;
         
-            
+        
+        
         public string name;
 
-        [Min(0)]
-        public float duration;
-        public int maxApplicationCount;
-
+        
         [HideInInspector]
         public bool enable = true;
-
-        [TextArea(2, 5)]
         public string description;
 
+        
+        [Space(3)]
+        public EffectDurationData durationData;
+        
+        
         [Space(3)]
         public EffectFinishOption finishOption;
+        
         
 #if UNITY_EDITOR
         [SerializeField, HideInInspector]
         internal bool isExpanded = true;
 #endif
+        
         
         private bool _applied;
         private bool _released;
@@ -69,6 +74,16 @@ namespace ActionBuilder.Runtime
         public float elapsedTime
         {
             get { return _elapsedTime; }
+        }
+        
+        public float duration
+        {
+            get { return durationData.duration; }
+        }
+        
+        public int maxApplicationCount
+        {
+            get { return durationData.maxApplicationCount; }
         }
 
 

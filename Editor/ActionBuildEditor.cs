@@ -99,7 +99,7 @@ namespace ActionBuilder.Tool
 
             _actionView.onGUIHandler = this.RenderActionEditorUI;
 
-            if (selectedAction.effects is null)
+            if (selectedAction.internalEffects is null)
             {
                 _effectListView.itemsSource = null;
                 _dataView.style.display = DisplayStyle.None;
@@ -107,9 +107,9 @@ namespace ActionBuilder.Tool
             }
 
             _dataView.style.display = DisplayStyle.Flex;
-            _effectListView.itemsSource = selectedAction.effects;
+            _effectListView.itemsSource = selectedAction.internalEffects;
 
-            if (selectedAction.effects.Count == 0)
+            if (selectedAction.internalEffects.Count == 0)
             {
                 _effectListView.style.display = DisplayStyle.None;
             }
@@ -220,7 +220,9 @@ namespace ActionBuilder.Tool
             _effectListView.itemsSource.Add(effect);
             _effectListView.RefreshItems();
 
-            if (_serializedObject.targetObject is not ActionBase action)
+            ActionBase action = _serializedObject.targetObject as ActionBase;
+            
+            if (_serializedObject is null)
             {
                 action = _actionList[_actionListView.selectedIndex];
                 _serializedObject = new SerializedObject(action);
@@ -263,21 +265,21 @@ namespace ActionBuilder.Tool
             ActionBase action = _actionList[selectedIndex];
             Assert.IsNotNull(action);
 
-            if (action.effects == null || action.effects.Count == 0)
+            if (action.internalEffects == null || action.internalEffects.Count == 0)
             {
                 return;
             }
 
-            int effectIndex = action.effects.IndexOf(effectView.effect);
+            int effectIndex = action.internalEffects.IndexOf(effectView.effect);
 
             if (effectIndex < 0)
             {
                 return;
             }
 
-            action.effects.RemoveAt(effectIndex);
+            action.internalEffects.RemoveAt(effectIndex);
 
-            if (action.effects.Count == 0)
+            if (action.internalEffects.Count == 0)
             {
                 _effectListView.style.display = DisplayStyle.None;
             }

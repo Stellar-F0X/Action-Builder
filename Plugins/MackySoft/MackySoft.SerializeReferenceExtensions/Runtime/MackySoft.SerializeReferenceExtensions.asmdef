@@ -1,9 +1,7 @@
 {
-    "name": "ActionBuilder.Runtime",
-    "rootNamespace": "ActionBuilder.Runtime",
-    "references": [
-        "GUID:49b49c76ee64f6b41bf28ef951cb0e50"
-    ],
+    "name": "MackySoft.SerializeReferenceExtensions",
+    "rootNamespace": "",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

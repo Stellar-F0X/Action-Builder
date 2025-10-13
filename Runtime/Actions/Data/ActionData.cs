@@ -14,9 +14,6 @@ namespace ActionBuilder.Runtime
             this.developName = "";
             this.tag = "Default";
             this.description = "";
-            this.cooldownTime = 0f;
-            this.durationType = ActionDuration.Instant;
-            this.usingStatsTemplate = null;
             this.effects = new List<EffectBase>();
             this.channelIds = new List<UGUID>();
         }
@@ -26,9 +23,6 @@ namespace ActionBuilder.Runtime
         public string name;
         public string tag;
         public string description;
-        public float cooldownTime;
-        public ActionDuration durationType;
-        public StatSet usingStatsTemplate;
 
         [SerializeReference]
         public List<EffectBase> effects;

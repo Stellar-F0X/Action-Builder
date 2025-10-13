@@ -39,11 +39,12 @@ namespace ActionBuilder.Runtime
         CycleOrDuration
     }
 
-    public enum State
+    public enum ActionState
     {
-        IdleUntilStart,
-        Started,
-        Updating,
-        Ended
+        Idle,
+        Playing,
+        Paused,
+        Finished,
+        Cancelled
     }
 }

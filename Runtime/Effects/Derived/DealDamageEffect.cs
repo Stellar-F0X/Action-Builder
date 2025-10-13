@@ -2,6 +2,11 @@ namespace ActionBuilder.Runtime
 {
     public class DealDamageEffect : EffectBase
     {
+        //## Fields ##
+        //public TargetSelector targetSelector;
+        //public DamagePolicy damagePolicy;
+        
+        
         //Effect는 수동으로, 그리고 타이밍에 맞춰서 실행될 수 있어야 됨. 
         //3타 같은건 Action으로 구현해야될 것 같음, 3타를 이루는 각 타격.
         //1타씩 때릴때마다 적의 디버프 큐? 같은거에 해당 액션에 대한 효과를 삽입하고. 
@@ -12,5 +17,6 @@ namespace ActionBuilder.Runtime
         //치명타 정책 같은건 따로 Policy로 빼는게 맞을 듯.
         
         public virtual void TrySearchForTarget() { }
+        
     }
 }

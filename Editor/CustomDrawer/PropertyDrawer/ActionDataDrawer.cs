@@ -19,9 +19,6 @@ namespace ActionBuilder.Tool
             SerializedProperty tagProp = property.FindPropertyRelative("tag");
             SerializedProperty developNameProp = property.FindPropertyRelative("developName");
             SerializedProperty descriptionProp = property.FindPropertyRelative("description");
-            SerializedProperty cooldownTimeProp = property.FindPropertyRelative("cooldownTime");
-            SerializedProperty durationTypeProp = property.FindPropertyRelative("durationType");
-            SerializedProperty statsTemplateProp = property.FindPropertyRelative("usingStatsTemplate");
 
 
             using (new EditorGUILayout.HorizontalScope())
@@ -36,32 +33,25 @@ namespace ActionBuilder.Tool
 
                 this.RenderIconField(iconProp);
             }
-
             
-            using (EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope())
+            this.RenderDescriptionField(property, descriptionProp);
+        }
+
+
+
+        private void RenderDescriptionField(SerializedProperty property, SerializedProperty descriptionProp)
+        {
+            using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
+
+            GUILayoutOption heightOption = GUILayout.Height(40);
+            descriptionProp.stringValue = EditorGUILayout.TextField("Description", descriptionProp.stringValue, heightOption);
+
+            if (check.changed == false)
             {
-                GUILayoutOption heightOption = GUILayout.Height(40);
-                descriptionProp.stringValue = EditorGUILayout.TextField("Description", descriptionProp.stringValue, heightOption);
-
-
-                EditorGUILayout.Space(5);
-                Object statSet = statsTemplateProp.objectReferenceValue;
-                statsTemplateProp.objectReferenceValue = EditorGUILayout.ObjectField("Using Stats Template", statSet, typeof(StatSet), false);
-
-
-                EditorGUILayout.Space(5);
-                cooldownTimeProp.floatValue = EditorGUILayout.FloatField("Cooldown Time", cooldownTimeProp.floatValue);
-
-
-                Enum durationType = (ActionDuration)durationTypeProp.enumValueIndex;
-                durationTypeProp.enumValueIndex = (int)(ActionDuration)EditorGUILayout.EnumPopup("Duration Type", durationType);
-                
-                
-                if (check.changed)
-                {
-                    property.serializedObject.ApplyModifiedProperties();
-                }
+                return;
             }
+
+            property.serializedObject.ApplyModifiedProperties();
         }
 
 

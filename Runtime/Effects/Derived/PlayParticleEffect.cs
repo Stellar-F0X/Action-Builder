@@ -1,6 +1,6 @@
 namespace ActionBuilder.Runtime
 {
-    public class MainAction : ActionBase
+    public class PlayParticleEffect : EffectBase
     {
         
     }

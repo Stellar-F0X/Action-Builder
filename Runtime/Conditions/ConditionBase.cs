@@ -5,6 +5,6 @@ namespace ActionBuilder.Runtime
     [Serializable]
     public abstract class ConditionBase
     {
-        public abstract bool CanExecute(); 
+        public abstract bool CanExecute(ActionBase controller); 
     }
 }
