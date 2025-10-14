@@ -217,8 +217,6 @@ namespace ActionBuilder.Tool
             Assert.IsNotNull(effect);
             Assert.IsNotNull(_effectListView);
 
-            _effectListView.itemsSource.Add(effect);
-            _effectListView.RefreshItems();
 
             ActionBase action = _serializedObject?.targetObject as ActionBase;
             
@@ -232,6 +230,8 @@ namespace ActionBuilder.Tool
             effect.referencedAction = action;
 
             _effectListView.style.display = DisplayStyle.Flex;
+            _effectListView.itemsSource.Add(effect);
+            _effectListView.RefreshItems();
         }
 
 #endregion

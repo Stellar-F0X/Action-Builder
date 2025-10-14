@@ -87,12 +87,6 @@ namespace ActionBuilder.Runtime
             get { return this.CalculateChargeProgress(); }
         }
 
-
-        public override float progress
-        {
-            get { return chargeProgress; }
-        }
-
 #endregion
 
 

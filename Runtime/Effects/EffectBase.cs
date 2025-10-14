@@ -46,6 +46,7 @@ namespace ActionBuilder.Runtime
         private int _appliedCount;
 
         private float _elapsedTime;
+        
         private float _lastApplyTime;
 
 
@@ -232,8 +233,6 @@ namespace ActionBuilder.Runtime
 
 
         public virtual void OnValidateEffect() { }
-
-
 
 
         public virtual void OnApply() { }

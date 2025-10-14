@@ -49,11 +49,6 @@ namespace ActionBuilder.Runtime
         
 
 #region Properties
-
-        public virtual float progress
-        {
-            get { return Mathf.InverseLerp(0, durationData.duration, _elapsedTime); }
-        }
         
         
         public virtual bool isOnCooldown
@@ -136,6 +131,12 @@ namespace ActionBuilder.Runtime
             get { return durationData.duration; }
         }
 
+
+        public string tag
+        {
+            get { return _actionData.tag; }
+        }
+        
 
         public IReadOnlyList<EffectBase> effects
         {
@@ -366,7 +367,7 @@ namespace ActionBuilder.Runtime
 
 
 
-        private void UpdateEffects(float deltaTime)
+        protected virtual void UpdateEffects(float deltaTime)
         {
             if (effects is null || effects.Count == 0)
             {
@@ -391,7 +392,7 @@ namespace ActionBuilder.Runtime
 
 
 
-        private void ResetEffects()
+        protected virtual void ResetEffects()
         {
             if (effects is null || effects.Count == 0)
             {
@@ -411,7 +412,7 @@ namespace ActionBuilder.Runtime
 
 
 
-        private void FinishAction()
+        protected virtual void FinishAction()
         {
             this._lastQuitTime = Time.time;
             this._currentState = ActionState.Finished;

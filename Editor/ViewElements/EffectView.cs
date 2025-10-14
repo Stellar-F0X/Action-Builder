@@ -56,7 +56,7 @@ namespace ActionBuilder.Tool
             _deleteButton = this.Q<Button>("delete-button");
             _foldout = this.Q<Foldout>("main-header");
             _nameLabel = _foldout.Q<Label>();
-            
+
             this.tooltip = effect.description;
 
             _foldout.UnregisterValueChangedCallback(this.UpdateEffectExpansion);
@@ -72,7 +72,7 @@ namespace ActionBuilder.Tool
             }
 
             _foldout.SetValueWithoutNotify(newEffect.isExpanded);
-            
+
             SerializedProperty nameProp = _serializedProperty.FindPropertyRelative("name");
             Assert.IsNotNull(nameProp);
 
@@ -91,7 +91,7 @@ namespace ActionBuilder.Tool
 
 #endregion
 
-        
+
         private void Render()
         {
             Assert.IsNotNull(_serializedProperty);
@@ -103,7 +103,6 @@ namespace ActionBuilder.Tool
             }
 
             _serializedObject.Update();
-            _serializedProperty.isExpanded = true;
 
             if (_iconContent is null)
             {
@@ -111,28 +110,47 @@ namespace ActionBuilder.Tool
                 _iconContent.tooltip = _serializedProperty.tooltip;
                 _iconContent.text = "Effect Fields";
             }
+            
+            
+            using (EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope())
+            {
+                bool disabled = !_enableToggle.value;
 
-            this.RenderPropertyFieldWithToggle();
+                using (new EditorGUI.DisabledScope(disabled))
+                {
+                    EditorGUILayout.PropertyField(_serializedProperty, _iconContent, true);
+                }
+
+                _serializedProperty.isExpanded = true;
+                
+                if (check.changed)
+                {
+                    EditorApplication.delayCall -= ApplySerializedProperties;
+                    EditorApplication.delayCall += ApplySerializedProperties;
+                }
+            }
+
+            // IMGUIContainer 높이 업데이트
+            float currentHeight = EditorGUI.GetPropertyHeight(_serializedProperty);
+            
+            if (Math.Abs(_imguiContainer.style.height.value.value - currentHeight) > 1f)
+            {
+                _imguiContainer.style.height = currentHeight;
+            }
         }
 
         
-        private void RenderPropertyFieldWithToggle()
+        
+        private void ApplySerializedProperties()
         {
-            using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
-            
-            bool disabled = !_enableToggle.value;
-            
-            using (new EditorGUI.DisabledScope(disabled))
+            if (_serializedObject == null || _serializedObject.targetObject == null)
             {
-                EditorGUILayout.PropertyField(_serializedProperty, _iconContent, true);
+                return;
             }
 
-            if (check.changed)
-            {
-                _imguiContainer.style.height = EditorGUI.GetPropertyHeight(_serializedProperty);
-                _serializedObject.ApplyModifiedProperties();
-            }
+            _serializedObject.ApplyModifiedProperties();
         }
+        
 
 
 #region UI Events
