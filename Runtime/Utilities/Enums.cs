@@ -88,17 +88,50 @@ namespace ActionBuilder.Runtime
         /// <summary> Action이 End될 때 해제 </summary>
         OnActionEnd
     }
-    
-    
+
+
     public enum StatModifierType
     {
         /// <summary> 단순히 수치를 더하는 등의 연산. </summary>
         Additive = 0,
-        
+
         /// <summary> 수치를 곱한다. </summary>
         Multiplicative = 1,
-        
+
         /// <summary> 값을 덮어씌운다. </summary>
         Override = 2
+    }
+
+
+    [Flags]
+    public enum SoundPlayMode
+    {
+        None = 0,
+
+        /// <summary>
+        /// Effect가 Apply될 때 재생
+        /// </summary>
+        PlayOnApply = 1 << 0,
+
+        /// <summary>
+        /// Action이 시작될 때 재생
+        /// </summary>
+        PlayOnActionStart = 1 << 1,
+
+        /// <summary>
+        /// Action이 끝날 때 재생
+        /// </summary>
+        PlayOnActionEnd = 1 << 2,
+    }
+
+
+    /// <summary> 오디오 클립 재생 방식 </summary>
+    public enum AudioPlayType
+    {
+        /// <summary> 모든 클립을 동시에 재생 </summary>
+        PlayAll,
+        
+        /// <summary> 랜덤으로 하나만 재생 </summary>
+        RandomSingle,
     }
 }

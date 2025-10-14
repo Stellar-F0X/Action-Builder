@@ -120,6 +120,8 @@ namespace ActionBuilder.Runtime
             _released = false;
             _appliedCount = 0;
             _lastApplyTime = 0;
+
+            this.OnReset();
         }
 
 
@@ -223,13 +225,21 @@ namespace ActionBuilder.Runtime
         }
 
 
-        public virtual void Dispose()
+        public void Dispose()
         {
+            this.OnDispose();
+            
             this.onBeforeApply = null;
             this.onAfterApply = null;
             this.onBeforeRelease = null;
             this.onAfterRelease = null;
         }
+        
+        
+        public virtual void OnDispose() { }
+        
+        
+        public virtual void OnReset() { }
 
 
         public virtual void OnValidateEffect() { }

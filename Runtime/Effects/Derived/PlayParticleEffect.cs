@@ -135,12 +135,12 @@ namespace ActionBuilder.Runtime
 
 
         /// <summary> 리소스를 해제합니다 </summary>
-        public override void Dispose()
+        public override void OnDispose()
         {
             this.StopParticle();
+            
             OnParticleStart = null;
             OnParticleEnd = null;
-            base.Dispose();
         }
 
 

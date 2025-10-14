@@ -125,8 +125,7 @@ namespace ActionBuilder.Tool
                 
                 if (check.changed)
                 {
-                    EditorApplication.delayCall -= ApplySerializedProperties;
-                    EditorApplication.delayCall += ApplySerializedProperties;
+                    _serializedObject.ApplyModifiedProperties();
                 }
             }
 
@@ -137,18 +136,6 @@ namespace ActionBuilder.Tool
             {
                 _imguiContainer.style.height = currentHeight;
             }
-        }
-
-        
-        
-        private void ApplySerializedProperties()
-        {
-            if (_serializedObject == null || _serializedObject.targetObject == null)
-            {
-                return;
-            }
-
-            _serializedObject.ApplyModifiedProperties();
         }
         
 
