@@ -81,33 +81,37 @@ namespace ActionBuilder.Tool
             using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
 
             string previousName = nameProp.stringValue;
-            string newName = EditorGUILayout.DelayedTextField("Name", nameProp.stringValue);
+            EditorGUILayout.DelayedTextField(nameProp);
 
             if (check.changed == false)
             {
                 return;
             }
-
-            Object targetObject = property.serializedObject.targetObject;
-            string path = AssetDatabase.GetAssetPath(targetObject);
-
-            nameProp.stringValue = newName;
+            
+            Object target = property.serializedObject.targetObject;
             property.serializedObject.ApplyModifiedProperties();
+            
+            string newName = nameProp.stringValue;
+            string path = AssetDatabase.GetAssetPath(target);
             string message = AssetDatabase.RenameAsset(path, newName);
 
+            property.serializedObject.ApplyModifiedProperties();
+            property.serializedObject.Update();
+            
             if (string.IsNullOrEmpty(message))
             {
-                targetObject.name = newName;
+                target.name = newName;
+                nameProp.stringValue = newName;
                 hashProp.intValue = Animator.StringToHash(newName);
-                EditorUtility.SetDirty(targetObject);
             }
             else
             {
+                target.name = previousName;
                 nameProp.stringValue = previousName;
                 Debug.LogError($"Rename failed: {message}");
             }
-
-            AssetDatabase.SaveAssets();
+            
+            property.serializedObject.ApplyModifiedProperties();
             ActionBuildEditor.Instance.actionListView.RefreshItems();
         }
     }

@@ -34,9 +34,6 @@ namespace ActionBuilder.Tool
             string assetPath = AssetDatabase.GenerateUniqueAssetPath($"{actionsFolder}/{createdObject.name}.asset");
             
             AssetDatabase.CreateAsset(createdObject, assetPath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
             ActionBase actionBase = createdObject as ActionBase;
             Assert.IsNotNull(actionBase);
             actionBase.OnCreate();

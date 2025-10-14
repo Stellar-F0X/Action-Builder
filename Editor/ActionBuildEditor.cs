@@ -164,7 +164,7 @@ namespace ActionBuilder.Tool
             Label nameLabel = visualElement.Q<Label>();
 
             ActionBase action = _actionList[index];
-            nameLabel.text = action.name;
+            nameLabel.text = action.actionName;
             icon.sprite = action.icon;
 
             visualElement.tooltip = action.description;
@@ -349,6 +349,7 @@ namespace ActionBuilder.Tool
 
 #endregion
 
+        
 
 #region Render Action Inspector
 

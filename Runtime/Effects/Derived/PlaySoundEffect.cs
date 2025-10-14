@@ -24,12 +24,15 @@ namespace ActionBuilder.Runtime
         public bool stopOnRelease = true;
 
         public bool stopOnActionEnd ;
-
-        // Runtime variables
+        
         private bool _isPlaying;
+        
         private AudioController _audioController;
+        
         private AudioSource[] _currentAudioSources;
 
+        
+        
         public override void OnApply()
         {
             if ((playMode & SoundPlayMode.PlayOnApply) == 0)
@@ -40,6 +43,7 @@ namespace ActionBuilder.Runtime
             this.PlaySound();
         }
 
+        
         public override void OnActionStart()
         {
             if ((playMode & SoundPlayMode.PlayOnActionStart) == 0)
@@ -50,6 +54,7 @@ namespace ActionBuilder.Runtime
             this.PlaySound();
         }
 
+        
         public override void OnActionEnd()
         {
             if ((playMode & SoundPlayMode.PlayOnActionEnd) != 0)
@@ -67,6 +72,7 @@ namespace ActionBuilder.Runtime
                 this.DetachFromEffect();
             }
         }
+        
 
         public override void OnRelease()
         {
@@ -78,6 +84,7 @@ namespace ActionBuilder.Runtime
             this.StopSound();
         }
 
+        
         /// <summary>
         /// AudioController 설정
         /// </summary>
@@ -103,6 +110,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
+        
         /// <summary>
         /// 사운드 재생
         /// </summary>
@@ -137,6 +145,7 @@ namespace ActionBuilder.Runtime
             _isPlaying = true;
         }
 
+        
         /// <summary>
         /// 랜덤으로 하나의 클립만 재생
         /// </summary>
@@ -163,6 +172,7 @@ namespace ActionBuilder.Runtime
             audioSource.Play();
         }
 
+        
         /// <summary>
         /// 모든 클립을 동시에 재생
         /// </summary>
@@ -197,6 +207,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
+        
         /// <summary>
         /// 사운드 정지
         /// </summary>
@@ -211,6 +222,7 @@ namespace ActionBuilder.Runtime
             _isPlaying = false;
         }
 
+        
         /// <summary>
         /// Effect에서 분리하여 독립적으로 재생 완료까지 관리
         /// </summary>
@@ -232,6 +244,7 @@ namespace ActionBuilder.Runtime
             _currentAudioSources = null;
             _isPlaying = false;
         }
+        
 
         /// <summary>
         /// 현재 사용 중인 AudioSource들을 풀에 반환
@@ -247,6 +260,7 @@ namespace ActionBuilder.Runtime
             _currentAudioSources = null;
         }
 
+        
         /// <summary>
         /// 랜덤 AudioClip 반환
         /// </summary>
@@ -259,6 +273,7 @@ namespace ActionBuilder.Runtime
 
             return audioClips[UnityEngine.Random.Range(0, audioClips.Length)];
         }
+        
 
         /// <summary>
         /// 유효한 오디오 클립 목록 반환
@@ -273,6 +288,7 @@ namespace ActionBuilder.Runtime
             return audioClips.Where(clip => clip != null).ToArray();
         }
 
+        
         /// <summary>
         /// 독립 실행 중인 오디오가 종료되었을 때 호출됩니다
         /// </summary>
@@ -282,16 +298,19 @@ namespace ActionBuilder.Runtime
             Debug.Log($"[PlaySoundEffect] Detached audio finished for {name}");
         }
 
+        
         public override void OnReset()
         {
             this.StopSound();
         }
 
+        
         public override void OnDispose()
         {
             this.StopSound();
         }
 
+        
         public override void OnValidateEffect()
         {
             base.OnValidateEffect();
@@ -331,6 +350,7 @@ namespace ActionBuilder.Runtime
         }
     }
 
+    
     /// <summary>
     /// 독립 실행 오디오를 감시하는 MonoBehaviour 컴포넌트
     /// </summary>
@@ -353,6 +373,7 @@ namespace ActionBuilder.Runtime
 
             this.StartCoroutine(this.WatchAudio());
         }
+        
 
         /// <summary>
         /// 오디오가 끝날 때까지 감시합니다
@@ -367,6 +388,7 @@ namespace ActionBuilder.Runtime
             this.OnAudioFinished();
         }
 
+        
         /// <summary>
         /// 재생 중인 오디오가 있는지 확인
         /// </summary>
@@ -389,6 +411,7 @@ namespace ActionBuilder.Runtime
 
             return false;
         }
+        
 
         /// <summary>
         /// 오디오 재생 완료 처리
@@ -414,7 +437,8 @@ namespace ActionBuilder.Runtime
             // 자기 자신 정리
             Destroy(this.gameObject);
         }
-
+        
+        
         private void OnDestroy()
         {
             if (_hasFinished || _audioController == null || _audioSources == null)
