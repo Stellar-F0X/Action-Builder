@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace ActionBuilder.Runtime
@@ -40,12 +39,24 @@ namespace ActionBuilder.Runtime
             Type selectorType = Type.GetType(selector.keyTypeName);
             Assert.IsNotNull(selectorType, "select's type name is null");
 
-            if (referencedAction.usingStatsTemplate.keyType == selectorType)
+            if (referencedAction.usingStatsTemplate.keyType != selectorType)
+            {
+                selectors.Clear();
+                return;
+            }
+
+            if (selectors.Count == 1)
             {
                 return;
             }
 
-            selectors.Clear();
+            int lastIdx = selectors.Count - 1;
+
+            //유니티는 리스트를 새로 만들때 index - 1번째 아이템을 그냥 복사해서 만들어서 별도로 초기화 해줘야 됨.
+            if (selectors[lastIdx - 1].modifier == selectors[lastIdx].modifier)
+            {
+                selectors[lastIdx].ChangeModifier(null);
+            }
         }
 
 

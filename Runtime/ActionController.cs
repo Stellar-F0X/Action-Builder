@@ -5,6 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Runtime
 {
+    [DefaultExecutionOrder(-2)]
     public class ActionController : MonoBehaviour
     {
         /// <summary> Action이 컨트롤러에 등록될 때 발생 </summary>

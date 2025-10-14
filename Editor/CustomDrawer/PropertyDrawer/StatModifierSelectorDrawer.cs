@@ -68,7 +68,7 @@ namespace ActionBuilder.Tool
             StatSet statSet = statSetTemplateProp.objectReferenceValue as StatSet;
             Assert.IsNotNull(statSet);
 
-            typeNameProp.stringValue ??= statSet.keyType.AssemblyQualifiedName;
+            typeNameProp.stringValue = statSet.keyType.AssemblyQualifiedName;
 
             _statKeyRect = new Rect(position.x, position.y + _lineHeight, position.width, EditorGUIUtility.singleLineHeight);
             _modifierRect = new Rect(position.x, position.y + _lineHeight * 2, position.width, EditorGUIUtility.singleLineHeight);

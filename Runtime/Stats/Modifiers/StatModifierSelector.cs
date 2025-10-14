@@ -1,17 +1,24 @@
 using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace ActionBuilder.Runtime
 {
     [Serializable]
-    public struct StatModifierSelector
+    public class StatModifierSelector
     {
         public string statKey;
+        
+        [HideInInspector]
+        public string keyTypeName;
 
         [SerializeReference, SubclassSelector]
         public StatModifierBase modifier;
 
-        [HideInInspector]
-        public string keyTypeName;
+
+        public void ChangeModifier(StatModifierBase newModifier)
+        {
+            this.modifier = newModifier;
+        }
     }
 }
