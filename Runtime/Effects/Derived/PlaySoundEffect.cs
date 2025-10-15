@@ -118,7 +118,7 @@ namespace ActionBuilder.Runtime
         {
             if (audioClips == null || audioClips.Length == 0)
             {
-                Debug.LogWarning($"[PlaySoundEffect] No audio clips assigned to {name}");
+                Debug.LogWarning($"[PlaySoundEffect] No audio clips assigned to {effectName}");
                 return;
             }
 
@@ -126,7 +126,7 @@ namespace ActionBuilder.Runtime
 
             if (_audioController == null)
             {
-                Debug.LogError($"[PlaySoundEffect] Failed to setup AudioController for {name}");
+                Debug.LogError($"[PlaySoundEffect] Failed to setup AudioController for {effectName}");
                 return;
             }
 
@@ -295,17 +295,11 @@ namespace ActionBuilder.Runtime
         internal void OnDetachedAudioFinished(AudioSource[] audioSources)
         {
             // 독립 실행이 완료되었을 때 처리할 로직이 있다면 여기에 추가
-            Debug.Log($"[PlaySoundEffect] Detached audio finished for {name}");
+            Debug.Log($"[PlaySoundEffect] Detached audio finished for {effectName}");
         }
 
         
         public override void OnReset()
-        {
-            this.StopSound();
-        }
-
-        
-        public override void OnDispose()
         {
             this.StopSound();
         }
@@ -346,7 +340,7 @@ namespace ActionBuilder.Runtime
             }
 
             playMode = SoundPlayMode.PlayOnApply;
-            Debug.LogWarning($"[PlaySoundEffect] {name}: Play mode cannot be None. Setting to 'PlayOnApply'.");
+            Debug.LogWarning($"[PlaySoundEffect] {effectName}: Play mode cannot be None. Setting to 'PlayOnApply'.");
         }
     }
 

@@ -14,7 +14,7 @@ namespace ActionBuilder.Tool
         {
             ScriptableObject createdObject = ScriptableObject.CreateInstance(type);
             Assert.IsNotNull(createdObject);
-            
+
             const string resourcesRoot = "Assets/Resources";
 
             if (AssetDatabase.IsValidFolder(resourcesRoot) == false)
@@ -22,21 +22,28 @@ namespace ActionBuilder.Tool
                 AssetDatabase.CreateFolder("Assets", "Resources");
             }
 
-            const string actionsFolder = resourcesRoot + "/Actions";
+            string actionsFolder = resourcesRoot + $"/Actions";
             
             if (AssetDatabase.IsValidFolder(actionsFolder) == false)
             {
                 AssetDatabase.CreateFolder(resourcesRoot, "Actions");
             }
             
-            createdObject.name = string.IsNullOrEmpty(entryName) ? type.Name : entryName;
+            createdObject.name = type.Name;
             
             string assetPath = AssetDatabase.GenerateUniqueAssetPath($"{actionsFolder}/{createdObject.name}.asset");
             
             AssetDatabase.CreateAsset(createdObject, assetPath);
+            
+            
             ActionBase actionBase = createdObject as ActionBase;
             Assert.IsNotNull(actionBase);
             actionBase.OnCreate();
+            
+            EditorUtility.SetDirty(actionBase);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            
             return actionBase;
         }
     }

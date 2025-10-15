@@ -1,27 +1,39 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <Style src="project://database/Assets/Action-Builder/Editor/EditorLayout/ActionBuilderStyle.uss?fileID=7433441132597879392&amp;guid=07fee5db52a0abe42ae7c2460e9f6369&amp;type=3#ActionBuilderStyle" />
-    <ActionBuilder.Tool.SplitView fixed-pane-initial-dimension="200" style="min-height: 100%;">
-        <ui:VisualElement name="left-view" class="splitted-view" style="flex-grow: 1; flex-shrink: 1; margin-left: 1px; margin-right: 1px; flex-direction: row; min-width: 125px;">
-            <ui:VisualElement name="shortcut-list" style="background-color: rgb(46, 46, 46); margin-right: 0; flex-direction: column; border-left-color: rgb(63, 63, 63); border-right-color: rgb(63, 63, 63); border-top-color: rgb(63, 63, 63); border-bottom-color: rgb(63, 63, 63); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 0; padding-left: 3px; padding-right: 3px;">
-                <ui:Button name="create-action-button" style="background-image: url(&quot;project://database/Assets/Action-Builder/Editor/EditorLayout/Add.png?fileID=2800000&amp;guid=80311de3d13fbfc48983f393c313696d&amp;type=3#Add&quot;); flex-grow: 0; flex-shrink: 1; height: 25px; width: 25px; min-width: initial; min-height: initial; padding-right: 1px; padding-left: 1px; margin-top: 3px; margin-right: 1px; margin-bottom: 3px; margin-left: 1px;" />
-                <ui:Button name="delete-action-button" style="background-image: url(&quot;project://database/Assets/Action-Builder/Editor/EditorLayout/Remove.png?fileID=2800000&amp;guid=43dbf9a639d9a884aa38a785667ec1e9&amp;type=3#Remove&quot;); flex-grow: 0; flex-shrink: 1; height: 25px; width: 25px; min-width: initial; min-height: initial; padding-right: 1px; padding-left: 1px; margin-top: 3px; margin-right: 1px; margin-bottom: 3px; margin-left: 1px;" />
-            </ui:VisualElement>
-            <ui:VisualElement name="action-container" style="flex-grow: 1;">
-                <ui:Label text="Actions" name="title" class="title" />
-                <ui:ListView name="action-list" allow-add="false" allow-remove="false" show-bound-collection-size="false" show-alternating-row-backgrounds="ContentOnly" style="background-color: rgb(58, 58, 58);" />
+    <ActionBuilder.Tool.SplitView fixed-pane-initial-dimension="250" style="min-height: 100%;">
+        <ui:VisualElement name="left-view" class="splitted-view" style="flex-grow: 1; flex-shrink: 1; margin-left: 1px; margin-right: 1px; flex-direction: column; min-width: 200px;">
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
+                <ui:VisualElement name="shortcut-list" style="background-color: rgb(46, 46, 46); margin-right: 0; flex-direction: column; border-left-color: rgb(63, 63, 63); border-right-color: rgb(63, 63, 63); border-top-color: rgb(63, 63, 63); border-bottom-color: rgb(63, 63, 63); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 0; padding-left: 3px; padding-right: 3px;">
+                    <ui:Button name="create-button" style="background-image: url(&quot;project://database/Assets/Action-Builder/Editor/EditorLayout/Add.png?fileID=2800000&amp;guid=80311de3d13fbfc48983f393c313696d&amp;type=3#Add&quot;); flex-grow: 0; flex-shrink: 1; height: 25px; width: 25px; min-width: initial; min-height: initial; padding-right: 1px; padding-left: 1px; margin-top: 3px; margin-right: 1px; margin-bottom: 3px; margin-left: 1px;" />
+                    <ui:Button name="delete-button" style="background-image: url(&quot;project://database/Assets/Action-Builder/Editor/EditorLayout/Remove.png?fileID=2800000&amp;guid=43dbf9a639d9a884aa38a785667ec1e9&amp;type=3#Remove&quot;); flex-grow: 0; flex-shrink: 1; height: 25px; width: 25px; min-width: initial; min-height: initial; padding-right: 1px; padding-left: 1px; margin-top: 3px; margin-right: 1px; margin-bottom: 3px; margin-left: 1px;" />
+                </ui:VisualElement>
+                <ui:TabView style="flex-grow: 1;">
+                    <ui:Tab label="Action" name="action-tab" tabindex="1">
+                        <ui:VisualElement name="action-container" style="flex-grow: 1;">
+                            <ui:Label text="Actions" name="title" class="title" style="flex-wrap: wrap;" />
+                            <ui:ListView name="action-list" allow-add="false" allow-remove="false" show-bound-collection-size="false" show-alternating-row-backgrounds="ContentOnly" style="background-color: rgb(58, 58, 58);" />
+                        </ui:VisualElement>
+                    </ui:Tab>
+                    <ui:Tab label="Tag" name="tag-tab" tabindex="2" style="flex-grow: 1;">
+                        <ui:VisualElement name="tag-container" style="flex-grow: 1;">
+                            <ui:Label text="Tag" name="title" class="title" style="flex-wrap: wrap;" />
+                            <ui:ListView name="tag-list" allow-add="false" allow-remove="false" show-bound-collection-size="false" show-alternating-row-backgrounds="ContentOnly" style="background-color: rgb(58, 58, 58);" />
+                        </ui:VisualElement>
+                    </ui:Tab>
+                </ui:TabView>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="right-view" picking-mode="Ignore" class="splitted-view" style="margin-left: 1px; margin-right: 1px; flex-shrink: 1; flex-basis: auto; left: auto; min-width: 220px;">
             <ui:Label text="Inspector" name="title" class="title" />
-            <ui:VisualElement name="data-view" picking-mode="Ignore" style="flex-grow: 0; display: flex;">
+            <ui:VisualElement name="inspector-view" picking-mode="Ignore" style="flex-grow: 0; display: flex;">
                 <ui:VisualElement name="container" picking-mode="Ignore" style="flex-grow: 0; margin-right: 1px; margin-left: 1px;">
-                    <ui:Foldout text="Action" style="flex-shrink: 0;">
-                        <ui:IMGUIContainer name="action-view" style="flex-shrink: 1; flex-grow: 0; margin-right: 2px;" />
+                    <ui:Foldout text="Header" style="flex-shrink: 0;">
+                        <ui:IMGUIContainer name="object-inspector" style="flex-shrink: 1; flex-grow: 0; margin-right: 2px;" />
                     </ui:Foldout>
                     <ui:VisualElement name="line" class="line" />
-                    <ui:ListView name="effect-list" allow-remove="false" allow-add="false" selection-type="None" show-bound-collection-size="false" virtualization-method="DynamicHeight" item-template="project://database/Assets/Action-Builder/Editor/EditorLayout/EffectPanel.uxml?fileID=9197481963319205126&amp;guid=b5a9493c574348647a11e484ba4f81ba&amp;type=3#EffectPanel" show-foldout-header="false" fixed-item-height="100" header-title=" " style="min-height: auto; flex-grow: 0; flex-shrink: 1; max-height: 4000px;" />
+                    <ui:ListView name="effect-list" allow-remove="false" allow-add="false" selection-type="None" show-bound-collection-size="false" virtualization-method="DynamicHeight" item-template="project://database/Assets/Action-Builder/Editor/EditorLayout/EffectHandlePanel.uxml?fileID=9197481963319205126&amp;guid=b5a9493c574348647a11e484ba4f81ba&amp;type=3#EffectHandlePanel" show-foldout-header="false" fixed-item-height="100" header-title=" " style="min-height: auto; flex-grow: 0; flex-shrink: 1; max-height: 4000px;" />
                 </ui:VisualElement>
-                <ui:Button text="Add Effect" name="add-effect-button" style="align-self: center; flex-shrink: 0; width: 220px; padding-top: 5px; padding-bottom: 5px; height: 25px; min-height: initial; max-height: initial; flex-grow: 1; margin-bottom: 3px; margin-top: 3px;" />
+                <ui:Button text="Add Handle" name="add-effect-button" style="align-self: center; flex-shrink: 0; width: 220px; padding-top: 5px; padding-bottom: 5px; height: 25px; min-height: initial; max-height: initial; flex-grow: 1; margin-bottom: 3px; margin-top: 7px;" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ActionBuilder.Tool.SplitView>

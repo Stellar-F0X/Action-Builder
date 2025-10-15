@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace ActionBuilder.Runtime
 {
-    [Serializable]
-    public abstract class EffectBase : IDisposable
+    public abstract class EffectBase : ScriptableObject
     {
         public event Action<EffectBase> onBeforeApply;
 
@@ -13,24 +12,20 @@ namespace ActionBuilder.Runtime
         public event Action<EffectBase> onBeforeRelease;
 
         public event Action<EffectBase> onAfterRelease;
-
-
-
-        public string name;
+        
+        
+        public string effectName;
 
         [HideInInspector]
         public bool enable = true;
-
         public string description;
-
+        public bool linkActionLifetime = false;
+        
         [Space(3)]
         public ApplyPolicy applyPolicy;
 
         [Space(3)]
-        public EffectPeriodData periodData;
-
-        [Space(3)]
-        public EffectFinishOption finishOption;
+        public ExecutionData executionData;
 
 
 #if UNITY_EDITOR
@@ -46,7 +41,7 @@ namespace ActionBuilder.Runtime
         private int _appliedCount;
 
         private float _elapsedTime;
-        
+
         private float _lastApplyTime;
 
 
@@ -96,17 +91,17 @@ namespace ActionBuilder.Runtime
 
         public float duration
         {
-            get { return periodData.duration; }
+            get { return executionData.duration; }
         }
 
         public int applyCount
         {
-            get { return periodData.applyCount; }
+            get { return executionData.applyCount; }
         }
 
         public float applyInterval
         {
-            get { return periodData.applyInterval; }
+            get { return executionData.applyInterval; }
         }
 
 #endregion
@@ -146,7 +141,7 @@ namespace ActionBuilder.Runtime
             }
 
             // 아직 적용 주기에 따른 쿨타임이 끝나지 않았다면 종료.
-            if (_lastApplyTime + periodData.applyInterval > _elapsedTime)
+            if (_applied && _lastApplyTime + executionData.applyInterval > _elapsedTime)
             {
                 return;
             }
@@ -196,7 +191,7 @@ namespace ActionBuilder.Runtime
         /// <summary> 지정된 델타 시간에 따라 이펙트의 상태를 업데이트하고 이펙트가 완료되었는지 판단합니다. </summary>
         /// <param name="deltaTime">이펙트의 상태를 업데이트하는데 사용되는 시간 증분.</param>
         /// <returns>이펙트가 완료되었으면 true를, 그렇지 않으면 false를 반환합니다.</returns>
-        public bool Update(float deltaTime)
+        public bool TryUpdate(float deltaTime)
         {
             if (this.enable == false)
             {
@@ -210,35 +205,24 @@ namespace ActionBuilder.Runtime
                 this.Apply();
             }
 
-            if (this.finishOption == EffectFinishOption.ApplyCompleted && (_appliedCount == applyCount || _elapsedTime > duration))
+            if (this.CompletedApply())
             {
                 return true;
             }
-
-            if (this.finishOption == EffectFinishOption.DurationEnded && _elapsedTime > duration)
+            else
             {
-                return true;
+                this.OnUpdate(deltaTime);
+                return false;
             }
-
-            this.OnUpdate(deltaTime);
-            return false;
         }
-
-
-        public void Dispose()
+        
+        
+        public virtual bool CompletedApply()
         {
-            this.OnDispose();
-            
-            this.onBeforeApply = null;
-            this.onAfterApply = null;
-            this.onBeforeRelease = null;
-            this.onAfterRelease = null;
+            return _appliedCount == applyCount;
         }
-        
-        
-        public virtual void OnDispose() { }
-        
-        
+
+
         public virtual void OnReset() { }
 
 
@@ -253,8 +237,7 @@ namespace ActionBuilder.Runtime
 
         public virtual void OnRelease() { }
 
-
-        /// <summary>  </summary>
+        
         public virtual void OnActionPause() { }
 
 

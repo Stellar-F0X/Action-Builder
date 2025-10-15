@@ -17,12 +17,14 @@ namespace ActionBuilder.Tool
         private SerializedProperty _serializedProperty;
         private SerializedObject _serializedObject;
         private IMGUIContainer _imguiContainer;
+        
         private Toggle _enableToggle;
         private Foldout _foldout;
         private Label _nameLabel;
         private Button _deleteButton;
         private EffectBase _effect;
-        private GUIContent _iconContent;
+
+        private Editor _editor;
 
 
         public EffectBase effect
@@ -30,20 +32,19 @@ namespace ActionBuilder.Tool
             get { return _effect; }
         }
 
-        public Object targetObject
+        public Object effectObject
         {
             get { return _serializedObject.targetObject; }
         }
 
 
-
-#region Init
+        
 
         public void Refresh(SerializedProperty property, EffectBase newEffect)
         {
             _effect = newEffect;
             _serializedProperty = property;
-            _serializedObject = property.serializedObject;
+            _serializedObject = new SerializedObject(property.objectReferenceValue);
 
             this.InitializeEffectUI(property, newEffect);
         }
@@ -62,18 +63,18 @@ namespace ActionBuilder.Tool
             _foldout.UnregisterValueChangedCallback(this.UpdateEffectExpansion);
             _foldout.RegisterValueChangedCallback(this.UpdateEffectExpansion);
 
-            if (string.IsNullOrEmpty(newEffect.name))
+            if (string.IsNullOrEmpty(newEffect.effectName))
             {
                 _foldout.text = property.displayName;
             }
             else
             {
-                _foldout.text = newEffect.name;
+                _foldout.text = newEffect.effectName;
             }
 
             _foldout.SetValueWithoutNotify(newEffect.isExpanded);
-
-            SerializedProperty nameProp = _serializedProperty.FindPropertyRelative("name");
+            
+            SerializedProperty nameProp = _serializedObject.FindProperty("effectName");
             Assert.IsNotNull(nameProp);
 
             _nameLabel.Unbind();
@@ -86,58 +87,38 @@ namespace ActionBuilder.Tool
             _deleteButton.clicked -= this.RequestDeletion;
             _deleteButton.clicked += this.RequestDeletion;
 
+            _editor = Editor.CreateEditor(effectObject);
             _imguiContainer.onGUIHandler = this.Render;
         }
-
-#endregion
-
+        
 
         private void Render()
         {
             Assert.IsNotNull(_serializedProperty);
             Assert.IsNotNull(_foldout);
-
-            if (_foldout.value == false)
+            Assert.IsNotNull(_editor);
+            
+            if (this._foldout.value == false)
             {
                 return;
             }
 
             _serializedObject.Update();
 
-            if (_iconContent is null)
+            using var check = new EditorGUI.ChangeCheckScope();
+            
+            using (new EditorGUI.DisabledScope(!_enableToggle.value))
             {
-                _iconContent = EditorGUIUtility.IconContent("PreMatCylinder");
-                _iconContent.tooltip = _serializedProperty.tooltip;
-                _iconContent.text = "Effect Fields";
+                _editor.OnInspectorGUI();
             }
-            
-            
-            using (EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope())
-            {
-                bool disabled = !_enableToggle.value;
 
-                using (new EditorGUI.DisabledScope(disabled))
-                {
-                    EditorGUILayout.PropertyField(_serializedProperty, _iconContent, true);
-                }
-
-                _serializedProperty.isExpanded = true;
+            _serializedProperty.isExpanded = true;
                 
-                if (check.changed)
-                {
-                    _serializedObject.ApplyModifiedProperties();
-                }
-            }
-
-            // IMGUIContainer 높이 업데이트
-            float currentHeight = EditorGUI.GetPropertyHeight(_serializedProperty);
-            
-            if (Math.Abs(_imguiContainer.style.height.value.value - currentHeight) > 1f)
+            if (check.changed)
             {
-                _imguiContainer.style.height = currentHeight;
+                _serializedObject.ApplyModifiedProperties();
             }
         }
-        
 
 
 #region UI Events
@@ -145,29 +126,29 @@ namespace ActionBuilder.Tool
         private void RequestDeletion()
         {
             onDeleteRequested?.Invoke(this);
-            EditorUtility.SetDirty(targetObject);
+            EditorUtility.SetDirty(effectObject);
         }
 
 
         private void UpdateEffectExpansion(ChangeEvent<bool> evt)
         {
             _effect.isExpanded = evt.newValue;
-            EditorUtility.SetDirty(targetObject);
+            EditorUtility.SetDirty(effectObject);
         }
 
 
         private void EnableEffect(ChangeEvent<bool> evt)
         {
             _effect.enable = evt.newValue;
-            EditorUtility.SetDirty(targetObject);
+            EditorUtility.SetDirty(effectObject);
         }
 
 
         private void ChangeEffectName(SerializedProperty prop)
         {
-            _effect.name = prop.stringValue;
+            _effect.effectName = prop.stringValue;
             _foldout.text = prop.stringValue;
-            EditorUtility.SetDirty(targetObject);
+            EditorUtility.SetDirty(effectObject);
         }
 
 #endregion

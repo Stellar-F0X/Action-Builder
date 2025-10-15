@@ -14,11 +14,5 @@ namespace ActionBuilder.Runtime
 
         [SerializeReference, SubclassSelector]
         public StatModifierBase modifier;
-
-
-        public void ChangeModifier(StatModifierBase newModifier)
-        {
-            this.modifier = newModifier;
-        }
     }
 }

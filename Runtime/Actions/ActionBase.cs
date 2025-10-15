@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace ActionBuilder.Runtime
@@ -15,7 +14,7 @@ namespace ActionBuilder.Runtime
 
 
         [SerializeField, Space(-15)]
-        protected ActionData _actionData;
+        protected IdentifyData _identifyData;
 
         [Space(5)]
         public ActionDurationData durationData;
@@ -27,24 +26,32 @@ namespace ActionBuilder.Runtime
         [SerializeReference, SubclassSelector]
         public ConditionBase finishResolver;
 
-        [Space(5)]
+        [SerializeReference]
         public StatSet usingStatsTemplate;
 
 
         /// <summary> 정규화된 경과 퍼센테이지 </summary>
         private float _progress;
         
+        
         /// <summary> Action 동작 경과 시간 </summary>
         private float _elapsedTime;
 
+        
         /// <summary> 마지막으로 실행이 종료되었던 시간 </summary>
         private float _lastQuitTime;
 
+        
         /// <summary> 현재 동작 중인 상태 </summary>
         private ActionState _currentState;
 
+        
         /// <summary> Runtime only </summary>
         protected List<EventChannelBase> _channels;
+        
+        
+        [SerializeReference, HideInInspector]
+        protected List<EffectBase> _effects;
 
         
 
@@ -104,25 +111,25 @@ namespace ActionBuilder.Runtime
 
         public Sprite icon
         {
-            get { return _actionData.icon; }
+            get { return _identifyData.icon; }
         }
 
 
         public string actionName
         {
-            get { return _actionData.name; }
+            get { return _identifyData.name; }
         }
 
 
         public string description
         {
-            get { return _actionData.description; }
+            get { return _identifyData.description; }
         }
 
 
         public int hash
         {
-            get { return _actionData.hash; }
+            get { return _identifyData.hash; }
         }
 
 
@@ -134,19 +141,19 @@ namespace ActionBuilder.Runtime
 
         public string tag
         {
-            get { return _actionData.tag; }
+            get { return _identifyData.tag; }
         }
         
 
         public IReadOnlyList<EffectBase> effects
         {
-            get { return _actionData.effects; }
+            get { return _effects; }
         }
 
 
         internal List<EffectBase> internalEffects
         {
-            get { return _actionData.effects; }
+            get { return _effects; }
         }
 
 #endregion
@@ -155,7 +162,7 @@ namespace ActionBuilder.Runtime
 
         internal void OnCreate()
         {
-            _actionData = new ActionData(this.name);
+            _identifyData = new IdentifyData(this.name);
         }
 
         
@@ -185,29 +192,13 @@ namespace ActionBuilder.Runtime
             {
                 this.statController = foundStatController;
             }
-            else if (this.usingStatsTemplate != null)
-            {
-                Debug.LogWarning("StatController not found, Stats Template will not be applied.");
-            }
-
 
             this.internalEffects.ForEach(e => e.referencedAction = this);
 
-
-            if (usingStatsTemplate == null)
-            {
-                return;
-            }
-
+            
             if (statController == null)
             {
                 Debug.LogError("StatController is not found in ActionController's GameObject");
-                return;
-            }
-
-            if (usingStatsTemplate.keyType != statController.keyType)
-            {
-                Debug.LogError("Using Stats Template Key Type is not same as StatController Key Type");
             }
         }
 
@@ -383,7 +374,7 @@ namespace ActionBuilder.Runtime
                     continue;
                 }
 
-                if (currentEffect.Update(deltaTime))
+                if (currentEffect.TryUpdate(deltaTime))
                 {
                     currentEffect.Release();
                 }

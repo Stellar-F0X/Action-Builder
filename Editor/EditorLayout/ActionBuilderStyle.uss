@@ -50,3 +50,9 @@
     margin-bottom: 0;
     background-color: rgb(65, 65, 65);
 }
+
+.unity-two-pane-split-view > #left-view > VisualElement > .unity-tab-view > #unity-tab-view__header-container > #unity-tab__header {
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+    justify-content: center;
+}

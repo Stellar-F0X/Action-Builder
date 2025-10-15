@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using ActionBuilder.Runtime;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Tool
 {
@@ -17,33 +16,25 @@ namespace ActionBuilder.Tool
             private set;
         }
 
-        private readonly List<ActionBase> _actionList = new List<ActionBase>();
-
         [SerializeField]
         private VisualTreeAsset _visualTreeAsset;
 
         private Button _createActionButton;
         private Button _deleteActionButton;
-        private Button _addEffectButton;
 
-        private ListView _actionListView;
-        private ListView _effectListView;
-        private VisualElement _dataView;
-        private IMGUIContainer _actionView;
+        private TabView _tabView;
 
-        private Editor _inspectorEditor;
-        private SerializedObject _serializedObject;
-        
-        
-        public ListView actionListView
+        private ActionListController _actionListController;
+        private TagListController _tagListController;
+        private InspectorController _inspectorController;
+
+
+        public ListController currentActiveTab => _tabView.activeTab.tabIndex switch
         {
-            get { return _actionListView; }
-        }
-        
-        public ListView effectListView
-        {
-            get { return _effectListView; }
-        }
+                1 => _actionListController,
+                2 => _tagListController,
+                _ => throw new IndexOutOfRangeException()
+        };
 
 
 
@@ -55,317 +46,70 @@ namespace ActionBuilder.Tool
         }
 
 
-
         private void CreateGUI()
         {
             Instance = this;
 
             _visualTreeAsset.CloneTree(rootVisualElement);
-            Assert.IsNotNull(_visualTreeAsset);
+            Assert.IsNotNull(_visualTreeAsset, "Visual tree asset is null reference");
 
-            _createActionButton = rootVisualElement.Q<Button>("create-action-button");
-            _deleteActionButton = rootVisualElement.Q<Button>("delete-action-button");
-            _addEffectButton = rootVisualElement.Q<Button>("add-effect-button");
+            _tabView = rootVisualElement.Q<TabView>();
+            _tabView.activeTabChanged += this.OnTabChanged;
 
-            _dataView = rootVisualElement.Q<VisualElement>("data-view");
-            _actionListView = rootVisualElement.Q<ListView>("action-list");
-            _actionView = rootVisualElement.Q<IMGUIContainer>("action-view");
-            _effectListView = rootVisualElement.Q<ListView>("effect-list");
+            _createActionButton = rootVisualElement.Q<Button>("create-button");
+            _deleteActionButton = rootVisualElement.Q<Button>("delete-button");
 
             _createActionButton.clickable.clickedWithEventInfo += this.CreateActionOnClickedButton;
             _deleteActionButton.clicked += this.DeleteActionOnClickedButton;
-            _addEffectButton.clickable.clickedWithEventInfo += this.AddEffectOnClickedButton;
 
-            _actionListView.bindItem = this.BindActionToList;
-            _actionListView.makeItem = this.BindActionListItem;
-            _actionListView.selectionChanged += this.OnActionSelectionChanged;
 
-            _effectListView.bindItem = this.BindEffectListItem;
+            VisualElement inspectorView = rootVisualElement.Q<VisualElement>("inspector-view");
+            IMGUIContainer imguiContainer = rootVisualElement.Q<IMGUIContainer>("object-inspector");
 
-            _actionList.AddRange(Resources.LoadAll<ActionBase>("Actions"));
-            _actionListView.itemsSource = _actionList;
-            _dataView.style.display = DisplayStyle.None;
+            _inspectorController = new InspectorController(inspectorView, imguiContainer);
+
+
+            ListView handleListView = rootVisualElement.Q<ListView>("effect-list");
+            ListView actionListView = rootVisualElement.Q<ListView>("action-list");
+            Button handleAddButton = rootVisualElement.Q<Button>("add-effect-button");
+            List<ScriptableObject> actionList = this.FilterMainAssetsOnly(Resources.LoadAll<ScriptableObject>("Actions"));
+            _actionListController = new ActionListController(actionListView, handleListView, handleAddButton, _inspectorController, actionList);
+
+            ListView tagListView = rootVisualElement.Q<ListView>("tag-list");
+            List<ScriptableObject> tagList = this.FilterMainAssetsOnly(Resources.LoadAll<ScriptableObject>("Tags"));
+            _tagListController = new TagListController(tagListView, handleListView, handleAddButton, _inspectorController, tagList);
         }
 
-
-
-        private void SelectAction(ActionBase selectedAction)
+        
+        private List<ScriptableObject> FilterMainAssetsOnly(ScriptableObject[] assets)
         {
-            if (_inspectorEditor == null || _inspectorEditor.target != selectedAction)
-            {
-                _inspectorEditor = Editor.CreateEditor(selectedAction);
-                _serializedObject = new SerializedObject(selectedAction);
-            }
-
-            _actionView.onGUIHandler = this.RenderActionEditorUI;
-
-            if (selectedAction.internalEffects is null)
-            {
-                _effectListView.itemsSource = null;
-                _dataView.style.display = DisplayStyle.None;
-                return;
-            }
-
-            _dataView.style.display = DisplayStyle.Flex;
-            _effectListView.itemsSource = selectedAction.internalEffects;
-
-            if (selectedAction.internalEffects.Count == 0)
-            {
-                _effectListView.style.display = DisplayStyle.None;
-            }
-            else
-            {
-                _effectListView.style.display = DisplayStyle.Flex;
-                _effectListView.schedule.Execute(_effectListView.Rebuild).ExecuteLater(0);
-            }
+            return assets.Where(AssetDatabase.IsMainAsset).ToList();
         }
 
-
-#region Action List
-
-        private void OnActionSelectionChanged(IEnumerable<object> selected)
+        
+        private void OnTabChanged(Tab prev, Tab curr)
         {
-            Assert.IsNotNull(_actionListView);
-            
-            int idx = _actionListView.selectedIndex;
-            
-            if (idx < 0 || idx >= _actionList.Count)
-            {
-                return;
-            }
-
-            if (_actionList[idx] == null)
-            {
-                _dataView.style.display = DisplayStyle.None;
-            }
-            else
-            {
-                this.SelectAction(_actionList[idx]);
-            }
+            currentActiveTab.listView.ClearSelection();
+            _inspectorController.ClearInspector();
         }
 
 
-        private VisualElement BindActionListItem()
+        public void UpdateListView()
         {
-            VisualElement rootElement = new VisualElement();
-
-            rootElement.style.flexDirection = FlexDirection.Row;
-            rootElement.style.alignItems = Align.Center;
-
-            rootElement.Add(new Image());
-            rootElement.Add(new Label());
-            return rootElement;
+            currentActiveTab.listView.RefreshItems();
         }
 
-
-        private void BindActionToList(VisualElement visualElement, int index)
-        {
-            Image icon = visualElement.Q<Image>();
-            Label nameLabel = visualElement.Q<Label>();
-
-            ActionBase action = _actionList[index];
-            nameLabel.text = action.actionName;
-            icon.sprite = action.icon;
-
-            visualElement.tooltip = action.description;
-        }
-
-
-        private void AddActionToList(ActionBase action)
-        {
-            Assert.IsNotNull(action);
-            Assert.IsNotNull(_actionListView);
-
-            _actionListView.itemsSource.Add(action);
-            _actionListView.RefreshItems();
-
-            int index = _actionListView.itemsSource.Count - 1;
-            _actionListView.selectedIndex = index;
-
-            this.SelectAction(action);
-        }
-
-#endregion
-
-
-
-#region Effect List
-
-        private void BindEffectListItem(VisualElement visualElement, int index)
-        {
-            if (_serializedObject is null)
-            {
-                _serializedObject = new SerializedObject(_actionList[index]);
-            }
-
-            _serializedObject.Update();
-
-            EffectView view = visualElement.Q<EffectView>();
-            SerializedProperty dataProp = _serializedObject.FindProperty("_actionData");
-            SerializedProperty effectListProp = dataProp.FindPropertyRelative("effects");
-            SerializedProperty effectProp = effectListProp.GetArrayElementAtIndex(index);
-
-            view.onDeleteRequested -= this.DeleteEffectOnClickedButton;
-            view.onDeleteRequested += this.DeleteEffectOnClickedButton;
-
-            view.Refresh(effectProp, (EffectBase)effectProp.boxedValue);
-        }
-
-
-        private void AddEffectToList(EffectBase effect)
-        {
-            Assert.IsNotNull(effect);
-            Assert.IsNotNull(_effectListView);
-
-
-            ActionBase action = _serializedObject?.targetObject as ActionBase;
-            
-            if (_serializedObject is null)
-            {
-                action = _actionList[_actionListView.selectedIndex];
-                _serializedObject = new SerializedObject(action);
-            }
-            
-            Assert.IsNotNull(action, "action is NullReference");
-            effect.referencedAction = action;
-
-            _effectListView.style.display = DisplayStyle.Flex;
-            _effectListView.itemsSource.Add(effect);
-            _effectListView.RefreshItems();
-        }
-
-#endregion
-
-
-
-#region Button Events
 
         private void CreateActionOnClickedButton(EventBase evt)
         {
-            BindingWindow window = BindingWindowBuilder.GetBuilder("Action")
-                                                       .AddFactoryModule(
-                                                           () => new ActionFactoryModule("Actions"),
-                                                           () => new TypeTreeProvider(true))
-                                                       .Build();
-
-            window.RegisterCreationCallbackOnce((Action<ActionBase>)AddActionToList);
-            window.OpenWindow(evt.originalMousePosition);
-        }
-
-
-        private void DeleteEffectOnClickedButton(EffectView effectView)
-        {
-            int selectedIndex = _actionListView.selectedIndex;
-
-            if (_actionList == null || _actionList.Count == 0 || selectedIndex < 0 || selectedIndex >= _actionList.Count)
-            {
-                return;
-            }
-
-            ActionBase action = _actionList[selectedIndex];
-            Assert.IsNotNull(action);
-
-            if (action.internalEffects == null || action.internalEffects.Count == 0)
-            {
-                return;
-            }
-
-            int effectIndex = action.internalEffects.IndexOf(effectView.effect);
-
-            if (effectIndex < 0)
-            {
-                return;
-            }
-
-            action.internalEffects.RemoveAt(effectIndex);
-
-            if (action.internalEffects.Count == 0)
-            {
-                _effectListView.style.display = DisplayStyle.None;
-            }
-            else
-            {
-                _effectListView.style.display = DisplayStyle.Flex;
-            }
-
-            _effectListView.RefreshItems();
-            this.Repaint();
+            currentActiveTab.CreateOnClickedButton(evt);
         }
 
 
         private void DeleteActionOnClickedButton()
         {
-            int selectedIndex = _actionListView.selectedIndex;
-
-            if (_actionList == null || _actionList.Count == 0 || selectedIndex < 0 || selectedIndex >= _actionList.Count)
-            {
-                return;
-            }
-
-            ActionBase actionToDelete = _actionList[selectedIndex];
-            Assert.IsNotNull(actionToDelete);
-
-            // IMGUIContainer 해제
-            if (_actionView != null)
-            {
-                _inspectorEditor = null;
-                _actionView.onGUIHandler = null;
-            }
-
-            // SerializedObject dispose
-            if (_serializedObject != null)
-            {
-                _serializedObject.Dispose();
-                _serializedObject = null;
-            }
-
-            string assetPath = AssetDatabase.GetAssetPath(actionToDelete);
-
-            if (string.IsNullOrEmpty(assetPath) == false)
-            {
-                AssetDatabase.DeleteAsset(assetPath);
-                AssetDatabase.SaveAssets();
-            }
-
-            _dataView.style.display = DisplayStyle.None;
-            _actionList.RemoveAt(selectedIndex);
-            _actionListView.RefreshItems();
-            _actionListView.ClearSelection();
+            currentActiveTab.DeleteOnClickedButton();
             this.Repaint();
         }
-
-
-        private void AddEffectOnClickedButton(EventBase evt)
-        {
-            BindingWindow window = BindingWindowBuilder.GetBuilder("Effects")
-                                                       .AddFactoryModule(
-                                                           () => new EffectFactoryModule("Effects"),
-                                                           () => new TypeTreeProvider(true))
-                                                       .Build();
-
-            window.RegisterCreationCallbackOnce((Action<EffectBase>)AddEffectToList);
-            window.OpenWindow(evt.originalMousePosition);
-        }
-
-#endregion
-
-        
-
-#region Render Action Inspector
-
-        private void RenderActionEditorUI()
-        {
-            if (_inspectorEditor == null)
-            {
-                Object target = _serializedObject.targetObject;
-                Assert.IsNotNull(target, "targetObject is null");
-                _inspectorEditor = Editor.CreateEditor(target);
-            }
-
-            Assert.IsNotNull(_inspectorEditor);
-            _inspectorEditor.OnInspectorGUI();
-        }
-
-#endregion
     }
 }

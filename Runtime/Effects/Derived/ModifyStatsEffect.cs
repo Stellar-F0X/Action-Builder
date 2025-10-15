@@ -55,7 +55,7 @@ namespace ActionBuilder.Runtime
             //유니티는 리스트를 새로 만들때 index - 1번째 아이템을 그냥 복사해서 만들어서 별도로 초기화 해줘야 됨.
             if (selectors[lastIdx - 1].modifier == selectors[lastIdx].modifier)
             {
-                selectors[lastIdx].ChangeModifier(null);
+                selectors[lastIdx] = null;
             }
         }
 

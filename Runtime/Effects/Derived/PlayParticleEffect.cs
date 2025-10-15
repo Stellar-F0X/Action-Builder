@@ -11,20 +11,13 @@ namespace ActionBuilder.Runtime
     {
         private static Dictionary<GameObject, Queue<GameObject>> _particlePool = new Dictionary<GameObject, Queue<GameObject>>();
 
-        public event Action<PlayParticleEffect> OnParticleStart;
-        public event Action<PlayParticleEffect> OnParticleEnd;
+        public event Action<PlayParticleEffect> onParticleStart;
+        public event Action<PlayParticleEffect> onParticleEnd;
 
         
         [Header("Particle Settings")]
         public GameObject particlePrefab;
         public bool usePooling = true;
-        
-        [Tooltip("Determines whether the particle stops when the action ends. " +
-                 "If false, the particle will continue playing until completion.")]
-        public bool stopWithAction;
-
-        [Header("Tracking Settings")]
-        public bool enableTracking;
 
         [TagDropdown]
         public string trackingTag;
@@ -51,6 +44,11 @@ namespace ActionBuilder.Runtime
             get { return _isParticlePlaying; }
         }
 
+        public bool enableTracking
+        {
+            get;
+            private set;
+        }
         
 
         /// <summary> 파티클을 적용합니다 </summary>
@@ -84,6 +82,8 @@ namespace ActionBuilder.Runtime
         }
 
 
+
+
         /// <summary> 파티클을 해제합니다 </summary>
         public override void OnRelease()
         {
@@ -94,12 +94,6 @@ namespace ActionBuilder.Runtime
         /// <summary> 액션 종료시 파티클을 정리합니다 </summary>
         public override void OnActionEnd()
         {
-            if (stopWithAction)
-            {
-                this.StopParticle();
-                return;
-            }
-
             if (_currentParticleSystem == null || _isParticlePlaying == false)
             {
                 return;
@@ -134,16 +128,6 @@ namespace ActionBuilder.Runtime
         }
 
 
-        /// <summary> 리소스를 해제합니다 </summary>
-        public override void OnDispose()
-        {
-            this.StopParticle();
-            
-            OnParticleStart = null;
-            OnParticleEnd = null;
-        }
-
-
         /// <summary> 파티클을 재생합니다 </summary>
         private void PlayParticle()
         {
@@ -173,7 +157,9 @@ namespace ActionBuilder.Runtime
 
             this.SetupParticle();
 
-            if (enableTracking)
+            this.enableTracking = string.CompareOrdinal(trackingTag, "Untagged") != 0;
+
+            if (this.enableTracking)
             {
                 _trackingTarget = transform.FindWithTag(trackingTag);
             }
@@ -184,8 +170,7 @@ namespace ActionBuilder.Runtime
 
             ParticleSystem.MainModule main = _currentParticleSystem.main;
             _particleDuration = main.duration + main.startLifetime.constantMax;
-
-            OnParticleStart?.Invoke(this);
+            onParticleStart?.Invoke(this);
         }
 
 
@@ -319,7 +304,7 @@ namespace ActionBuilder.Runtime
         private void OnParticleFinished()
         {
             _isParticlePlaying = false;
-            OnParticleEnd?.Invoke(this);
+            onParticleEnd?.Invoke(this);
 
             if (_currentParticleInstance != null)
             {
@@ -335,7 +320,7 @@ namespace ActionBuilder.Runtime
         /// <summary> 독립 실행중인 파티클이 종료되었을 때 호출됩니다 </summary>
         internal void OnDetachedParticleFinished(GameObject particleInstance)
         {
-            OnParticleEnd?.Invoke(this);
+            onParticleEnd?.Invoke(this);
             this.ReturnToPool(particleInstance);
         }
     }

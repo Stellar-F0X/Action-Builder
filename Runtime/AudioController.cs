@@ -5,16 +5,19 @@ namespace ActionBuilder.Runtime
 {
     public class AudioController : MonoBehaviour
     {
-        [Header("Audio Sources Pool")]
+        private readonly List<AudioSource> _availableAudioSources = new List<AudioSource>();
+
+        
+        private readonly List<AudioSource> _usedAudioSources = new List<AudioSource>();
+        
+        
+        [Header("Audio Sources Pool"), SerializeField]
+        private int _initialPoolSize = 5;
+
+        
         [SerializeField]
-        private int initialPoolSize = 5;
+        private int _maxPoolSize = 20;
 
-        [SerializeField]
-        private int maxPoolSize = 20;
-
-        private List<AudioSource> _availableAudioSources = new List<AudioSource>();
-
-        private List<AudioSource> _usedAudioSources = new List<AudioSource>();
 
 
 
@@ -23,6 +26,7 @@ namespace ActionBuilder.Runtime
             this.InitializePool();
         }
 
+        
         /// <summary>
         /// 오디오 소스 풀 초기화
         /// </summary>
@@ -33,13 +37,14 @@ namespace ActionBuilder.Runtime
             _usedAudioSources.Clear();
 
             
-            for (int i = 0; i < initialPoolSize; i++)
+            for (int i = 0; i < _initialPoolSize; i++)
             {
                 AudioSource audioSource = this.CreateNewAudioSource();
                 
                 _availableAudioSources.Add(audioSource);
             }
         }
+        
 
         /// <summary>
         /// 새로운 AudioSource 생성
@@ -55,6 +60,7 @@ namespace ActionBuilder.Runtime
             return audioSource;
         }
 
+        
         /// <summary>
         /// 사용 가능한 AudioSource 하나 가져오기
         /// </summary>
@@ -67,7 +73,7 @@ namespace ActionBuilder.Runtime
                 audioSource = _availableAudioSources[0];
                 _availableAudioSources.RemoveAt(0);
             }
-            else if (_usedAudioSources.Count + _availableAudioSources.Count < maxPoolSize)
+            else if (_usedAudioSources.Count + _availableAudioSources.Count < _maxPoolSize)
             {
                 audioSource = this.CreateNewAudioSource();
             }
@@ -86,6 +92,7 @@ namespace ActionBuilder.Runtime
 
             return audioSource;
         }
+        
 
         /// <summary>
         /// 여러 개의 AudioSource 가져오기
@@ -106,6 +113,7 @@ namespace ActionBuilder.Runtime
 
             return audioSources;
         }
+        
 
         /// <summary>
         /// AudioSource 사용 완료 후 풀에 반환
@@ -129,6 +137,7 @@ namespace ActionBuilder.Runtime
             _usedAudioSources.Remove(audioSource);
             _availableAudioSources.Add(audioSource);
         }
+        
 
         /// <summary>
         /// 여러 AudioSource들을 풀에 반환
@@ -146,6 +155,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
+        
         /// <summary>
         /// 모든 사용 중인 AudioSource 정지 및 반환
         /// </summary>

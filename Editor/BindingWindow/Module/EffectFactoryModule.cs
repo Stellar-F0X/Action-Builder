@@ -6,16 +6,23 @@ using UnityEngine.Assertions;
 
 namespace ActionBuilder.Tool
 {
-    internal class EffectFactoryModule : FactoryModule<EffectBase> 
+    internal class EffectFactoryModule : FactoryModule<EffectBase>
     {
         public EffectFactoryModule(string title, int layer = 1) : base(typeof(EffectBase), title, layer) { }
-        
+
         protected override EffectBase Create(Type type, Vector2 position, string entryName)
         {
-             EffectBase createdEffect = Activator.CreateInstance(type) as EffectBase;
-             Assert.IsNotNull(createdEffect, $"Failed to create instance of type {type}");
-             createdEffect.name = ObjectNames.NicifyVariableName(entryName);
-             return createdEffect;
+            ScriptableObject createdObject = ScriptableObject.CreateInstance(type);
+            Assert.IsNotNull(createdObject);
+            
+            EffectBase effectBase = createdObject as EffectBase;
+            Assert.IsNotNull(effectBase);
+            
+            effectBase.effectName = entryName;
+            effectBase.hideFlags = HideFlags.HideInHierarchy;
+            
+            EditorUtility.SetDirty(effectBase);
+            return effectBase;
         }
     }
 }
