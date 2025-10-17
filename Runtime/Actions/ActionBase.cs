@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
+using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Runtime
 {
@@ -32,37 +34,36 @@ namespace ActionBuilder.Runtime
 
         /// <summary> 정규화된 경과 퍼센테이지 </summary>
         private float _progress;
-        
-        
+
+
         /// <summary> Action 동작 경과 시간 </summary>
         private float _elapsedTime;
 
-        
+
         /// <summary> 마지막으로 실행이 종료되었던 시간 </summary>
         private float _lastQuitTime;
 
-        
+
         /// <summary> 현재 동작 중인 상태 </summary>
         private ActionState _currentState;
 
-        
-        /// <summary> Runtime only </summary>
-        protected List<EventChannelBase> _channels;
-        
-        
+
         [SerializeReference, HideInInspector]
         protected List<EffectBase> _effects;
 
-        
+
+        /// <summary> Runtime only </summary>
+        protected List<EventChannelBase> _channels;
+
+
 
 #region Properties
-        
-        
+
         public virtual bool isOnCooldown
         {
             get { return _lastQuitTime + durationData.cooldownTime > Time.time; }
         }
-        
+
 
         public ActionState currentState
         {
@@ -83,29 +84,29 @@ namespace ActionBuilder.Runtime
         }
 
 
-        public ActionController owner
+        public ActionController controller
         {
             get;
             set;
         }
 
 
-        public GameObject target
+        public List<GameObject> targets
         {
             get;
             set;
         }
-        
-        
+
+
         public Transform transform
         {
-            get { return this.owner.transform; }
+            get { return this.controller.transform; }
         }
 
-        
+
         public GameObject gameObject
         {
-            get { return this.owner.gameObject; }
+            get { return this.controller.gameObject; }
         }
 
 
@@ -143,12 +144,6 @@ namespace ActionBuilder.Runtime
         {
             get { return _identifyData.tag; }
         }
-        
-
-        public IReadOnlyList<EffectBase> effects
-        {
-            get { return _effects; }
-        }
 
 
         internal List<EffectBase> internalEffects
@@ -163,54 +158,43 @@ namespace ActionBuilder.Runtime
         internal void OnCreate()
         {
             _identifyData = new IdentifyData(this.name);
+            _channels = new List<EventChannelBase>();
+            _effects = new List<EffectBase>();
         }
 
-        
+
+
         private void OnValidate()
         {
             this.OnValidateAction();
-
-            if (effects is null || effects.Count == 0)
-            {
-                return;
-            }
-            
-            for (int index = 0; index < effects.Count; ++index)
-            {
-                effects[index].OnValidateEffect();
-            }
         }
-        
 
-        internal void Initialize(ActionController actionOwner)
+
+
+        protected internal virtual void Initialize(ActionController actionOwner)
         {
-            this.owner = actionOwner;
             this._channels = new List<EventChannelBase>();
-
+            this.controller = actionOwner;
 
             if (actionOwner.TryGetComponent(out StatController foundStatController))
             {
                 this.statController = foundStatController;
             }
 
-            this.internalEffects.ForEach(e => e.referencedAction = this);
-
-            
             if (statController == null)
             {
                 Debug.LogError("StatController is not found in ActionController's GameObject");
             }
+
+            for (int index = 0; index < internalEffects.Count; ++index)
+            {
+                internalEffects[index].action = this;
+            }
         }
 
 
-        internal void InitializeChannels(Dictionary<UGUID, EventChannelBase> allChannels) { }
-        
 
-
-
-#region Control Methods
-
-        public bool Trigger(bool force = false)
+        public virtual bool Trigger(bool force = false)
         {
             if (isOnCooldown && force == false)
             {
@@ -227,19 +211,12 @@ namespace ActionBuilder.Runtime
 
             this.OnStart();
             this.onStarted?.Invoke(this);
-
-            for (int index = 0; index < effects.Count; ++index)
-            {
-                EffectBase currentEffect = effects[index];
-                currentEffect.OnActionStart();
-            }
-            
             return true;
         }
 
 
 
-        public void Pause()
+        public virtual void Pause()
         {
             if (_currentState != ActionState.Playing)
             {
@@ -250,16 +227,15 @@ namespace ActionBuilder.Runtime
             this.OnPause();
             this.onPaused?.Invoke(this);
             
-            for (int index = 0; index < effects.Count; ++index)
+            for (int index = 0; index < _effects.Count; ++index)
             {
-                EffectBase currentEffect = effects[index];
-                currentEffect.OnActionPause();
+                _effects[index].OnActionPause();
             }
         }
 
 
 
-        public void Resume()
+        public virtual void Resume()
         {
             if (_currentState != ActionState.Paused)
             {
@@ -269,17 +245,16 @@ namespace ActionBuilder.Runtime
             this._currentState = ActionState.Playing;
             this.OnResume();
             this.onResumed?.Invoke(this);
-            
-            for (int index = 0; index < effects.Count; ++index)
+
+            for (int index = 0; index < _effects.Count; ++index)
             {
-                EffectBase currentEffect = effects[index];
-                currentEffect.OnActionResume();
+                _effects[index].OnActionResume();
             }
         }
 
 
 
-        public void Cancel()
+        public virtual void Cancel()
         {
             if (isActive == false)
             {
@@ -296,7 +271,7 @@ namespace ActionBuilder.Runtime
 
 
 
-        public void ClearAllEvents()
+        public virtual void ClearAllEvents()
         {
             this.onStarted = null;
             this.onEnded = null;
@@ -307,126 +282,66 @@ namespace ActionBuilder.Runtime
 
 
 
-        public virtual void Execute(float deltaTime)
+        public virtual void Update()
         {
             if (_currentState != ActionState.Playing)
             {
                 return;
             }
 
+            float deltaTime = Time.deltaTime;
             this._elapsedTime += deltaTime;
-
             this.OnUpdate(deltaTime);
-            this.UpdateEffects(deltaTime);
+            
+            for (int index = 0; index < _effects.Count; ++index)
+            {
+                if (_effects[index].executionData.delay < _elapsedTime)
+                {
+                    controller.AddEffectToRunningQueue(Object.Instantiate(_effects[index]));
+                }
+            }
+        }
 
+
+        public virtual bool IsFinish()
+        {
             switch (this.durationData.durationType)
             {
-                case ActionDuration.Duration:
-                {
-                    if (_elapsedTime > duration && (finishResolver is null || finishResolver.CanExecute(this)))
-                    {
-                        this.FinishAction();
-                    }
+                case ActionDuration.Duration: return _elapsedTime > duration && (finishResolver is null || finishResolver.CanExecute(this));
+                
+                //instant는 finish Resolver가 없거나, 조건이 참이라면 그냥 끝낸다. 
+                case ActionDuration.Instant: return finishResolver is null || finishResolver.CanExecute(this);
 
-                    break;
-                }
-
-                case ActionDuration.Instant:
-                {
-                    //instant는 finish Resolvar가 없거나, 조건이 참이라면 그냥 끝낸다. 
-                    if (finishResolver is null || finishResolver.CanExecute(this))
-                    {
-                        this.FinishAction();
-                    }
-
-                    break;
-                }
-
-                case ActionDuration.Infinite:
-                {
-                    //반면, infinite는 Resolvar가 있고, 조건에 맞아야지만 끝낸다. 
-                    //이게 아니면 무조건 Cancel 함수 호출로만 Action을 종료할 수 있다.
-                    if (finishResolver is not null && finishResolver.CanExecute(this))
-                    {
-                        this.FinishAction();
-                    }
-
-                    break;
-                }
+                //반면, infinite는 Resolver가 있고, 조건에 맞아야지만 끝낸다. 
+                //이게 아니면 무조건 Cancel 함수 호출로만 Action을 종료할 수 있다.
+                case ActionDuration.Infinite: return finishResolver is not null && finishResolver.CanExecute(this);
             }
+            
+            return false;
         }
 
 
-
-        protected virtual void UpdateEffects(float deltaTime)
-        {
-            if (effects is null || effects.Count == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < effects.Count; ++i)
-            {
-                EffectBase currentEffect = effects[i];
-
-                if (currentEffect.enable == false)
-                {
-                    continue;
-                }
-
-                if (currentEffect.TryUpdate(deltaTime))
-                {
-                    currentEffect.Release();
-                }
-            }
-        }
-
-
-
-        protected virtual void ResetEffects()
-        {
-            if (effects is null || effects.Count == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < effects.Count; ++i)
-            {
-                EffectBase currentEffect = effects[i];
-
-                if (currentEffect.enable)
-                {
-                    currentEffect.Reset();
-                }
-            }
-        }
-
-
-
-        protected virtual void FinishAction()
+        public virtual void FinishAction()
         {
             this._lastQuitTime = Time.time;
             this._currentState = ActionState.Finished;
 
             this.OnEnd();
-            this.ResetEffects();
+
+            Assert.IsNotNull(_effects);
             this.onEnded?.Invoke(this);
-            
-            for (int index = 0; index < effects.Count; ++index)
+
+            for (int index = 0; index < _effects.Count; ++index)
             {
-                EffectBase currentEffect = effects[index];
-                currentEffect.OnActionEnd();
+                _effects[index].OnActionEnd();
             }
         }
-
 
 
         public override string ToString()
         {
             return $"{typeof(ActionBase)} {actionName} (State: {_currentState}, Cooldown: {isOnCooldown}, Elapsed: {_elapsedTime:F2}s)";
         }
-
-#endregion
 
 
 
@@ -446,8 +361,8 @@ namespace ActionBuilder.Runtime
 
 
         protected virtual void OnEnd() { }
-        
-        
+
+
         protected virtual void OnValidateAction() { }
     }
 }

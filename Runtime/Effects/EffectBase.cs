@@ -12,20 +12,24 @@ namespace ActionBuilder.Runtime
         public event Action<EffectBase> onBeforeRelease;
 
         public event Action<EffectBase> onAfterRelease;
-        
-        
+
+
         public string effectName;
+
 
         [HideInInspector]
         public bool enable = true;
         public string description;
-        public bool linkActionLifetime = false;
-        
+        public bool autoRelease;
+        public EffectEndPolicy endPolicy;
+
+
         [Space(3)]
         public ApplyPolicy applyPolicy;
 
+
         [Space(3)]
-        public ExecutionData executionData;
+        public EffectDurationData executionData;
 
 
 #if UNITY_EDITOR
@@ -33,12 +37,9 @@ namespace ActionBuilder.Runtime
         internal bool isExpanded = true;
 #endif
 
-
-        private bool _applied;
-
         private bool _released;
 
-        private int _appliedCount;
+        private int _currentApplyCount;
 
         private float _elapsedTime;
 
@@ -46,37 +47,33 @@ namespace ActionBuilder.Runtime
 
 
         [SerializeReference, HideInInspector]
-        private ActionBase _referencedAction;
+        private ActionBase _action;
+
 
 
 
 #region Properties
 
-        public ActionBase referencedAction
+        public ActionBase action
         {
-            get { return _referencedAction; }
+            get { return _action; }
 
-            internal set { _referencedAction = value; }
-        }
-
-        public StatController statController
-        {
-            get { return _referencedAction.statController; }
+            internal set { _action = value; }
         }
 
         public Transform transform
         {
-            get { return _referencedAction.owner.transform; }
+            get { return _action.controller.transform; }
         }
 
         public GameObject gameObject
         {
-            get { return _referencedAction.owner.gameObject; }
+            get { return _action.controller.gameObject; }
         }
 
-        public bool isApplied
+        public bool isApplyComplete
         {
-            get { return _applied; }
+            get { return _currentApplyCount == applyCount; }
         }
 
         public bool isReleased
@@ -103,6 +100,21 @@ namespace ActionBuilder.Runtime
         {
             get { return executionData.applyInterval; }
         }
+        
+        public virtual bool hasFinished
+        {
+            get { return _elapsedTime > duration; }
+        }
+
+        public virtual bool canApply
+        {
+            get { return _currentApplyCount == 0 || (_lastApplyTime + executionData.applyInterval) < _elapsedTime; }
+        }
+
+        public virtual MinMax durationLimit
+        {
+            get { return new MinMax(float.MinValue, float.MaxValue); }
+        }
 
 #endregion
 
@@ -110,50 +122,36 @@ namespace ActionBuilder.Runtime
 
         public void Reset()
         {
-            _elapsedTime = 0;
-            _applied = false;
             _released = false;
-            _appliedCount = 0;
+            _elapsedTime = 0;
             _lastApplyTime = 0;
+            _currentApplyCount = 0;
 
             this.OnReset();
         }
 
 
 
-        public void ManuelApply()
-        {
-            if (this.applyPolicy == ApplyPolicy.Auto)
-            {
-                return;
-            }
-
-            this.Apply();
-        }
-
-
-
-        protected virtual void Apply()
+        public virtual void Apply()
         {
             if (this.enable == false)
             {
                 return;
             }
 
-            // 아직 적용 주기에 따른 쿨타임이 끝나지 않았다면 종료.
-            if (_applied && _lastApplyTime + executionData.applyInterval > _elapsedTime)
+            if (this.isApplyComplete)
             {
                 return;
             }
 
-            if (_appliedCount == applyCount)
+            // 아직 적용 주기에 따른 쿨타임이 끝나지 않았다면 종료.
+            if (this.canApply == false)
             {
                 return;
             }
 
             _lastApplyTime = _elapsedTime;
-            _appliedCount++;
-            _applied = true;
+            _currentApplyCount++;
 
             this.onBeforeApply?.Invoke(this);
             this.OnApply();
@@ -164,19 +162,14 @@ namespace ActionBuilder.Runtime
 
         public void Release(bool forceRelease = false)
         {
-            if (forceRelease == false)
+            if (this.enable == false)
             {
-                //아직 적용된 횟수가 설정된 적용 횟수에 도달하지 않았다면 해제하지 않음.
-                if (_appliedCount < applyCount)
-                {
-                    return;
-                }
-
-                //적용횟수에 도달하여 이미 해제된 상태라면 중복 해제를 막음.
-                if (_released)
-                {
-                    return;
-                }
+                return;
+            }
+            
+            if (forceRelease == false && (_released || hasFinished == false))
+            {
+                return;
             }
 
             _released = true;
@@ -188,45 +181,36 @@ namespace ActionBuilder.Runtime
 
 
 
-        /// <summary> 지정된 델타 시간에 따라 이펙트의 상태를 업데이트하고 이펙트가 완료되었는지 판단합니다. </summary>
-        /// <param name="deltaTime">이펙트의 상태를 업데이트하는데 사용되는 시간 증분.</param>
-        /// <returns>이펙트가 완료되었으면 true를, 그렇지 않으면 false를 반환합니다.</returns>
-        public bool TryUpdate(float deltaTime)
+        public void Update()
         {
-            if (this.enable == false)
+            if (this.enable == false || this.hasFinished)
             {
-                return false;
+                return;
             }
 
-            _elapsedTime += deltaTime;
+            _elapsedTime += Time.deltaTime;
 
             if (applyPolicy == ApplyPolicy.Auto)
             {
                 this.Apply();
             }
 
-            if (this.CompletedApply())
-            {
-                return true;
-            }
-            else
-            {
-                this.OnUpdate(deltaTime);
-                return false;
-            }
+            this.OnUpdate(Time.deltaTime);
         }
-        
-        
-        public virtual bool CompletedApply()
+
+
+
+        public void OnValidate()
         {
-            return _appliedCount == applyCount;
+            this.OnValidateEffect();
         }
+
+
+
+        protected virtual void OnValidateEffect() { }
 
 
         public virtual void OnReset() { }
-
-
-        public virtual void OnValidateEffect() { }
 
 
         public virtual void OnApply() { }
@@ -237,7 +221,7 @@ namespace ActionBuilder.Runtime
 
         public virtual void OnRelease() { }
 
-        
+
         public virtual void OnActionPause() { }
 
 

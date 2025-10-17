@@ -4,25 +4,22 @@ using UnityEngine.Assertions;
 
 namespace ActionBuilder.Runtime
 {
-    [Serializable]
     public class ModifyStatsEffect : EffectBase
     {
-        public StatModifierReleaseOption statReleaseOption;
-        
         public List<StatModifierSelector> selectors = new List<StatModifierSelector>();
 
         private StatController _cachedStatController;
-        
-        
 
-        public override void OnValidateEffect()
+
+
+        protected override void OnValidateEffect()
         {
             if (this.selectors is null || this.selectors.Count == 0)
             {
                 return;
             }
             
-            if (base.referencedAction?.usingStatsTemplate == null)
+            if (base.action?.usingStatsTemplate == null)
             {
                 return;
             }
@@ -39,7 +36,7 @@ namespace ActionBuilder.Runtime
             Type selectorType = Type.GetType(selector.keyTypeName);
             Assert.IsNotNull(selectorType, "select's type name is null");
 
-            if (referencedAction.usingStatsTemplate.keyType != selectorType)
+            if (action.usingStatsTemplate.keyType != selectorType)
             {
                 selectors.Clear();
                 return;
@@ -60,17 +57,17 @@ namespace ActionBuilder.Runtime
         }
 
 
-        protected override void Apply()
+        public override void Apply()
         {
             Assert.IsNotNull(selectors);
 
-            if (base.referencedAction.statController == null)
+            if (base.action.statController == null)
             {
-                _cachedStatController = base.referencedAction.owner.GetComponent<StatController>();
+                _cachedStatController = base.action.controller.GetComponent<StatController>();
             }
             else
             {
-                _cachedStatController = base.referencedAction.statController;
+                _cachedStatController = base.action.statController;
             }
 
             foreach (StatModifierSelector selector in selectors)
@@ -81,25 +78,8 @@ namespace ActionBuilder.Runtime
         }
 
 
-        public override void OnActionEnd()
-        {
-            if (statReleaseOption != StatModifierReleaseOption.OnActionEnd)
-            {
-                return;
-            }
-            
-            this.ReleaseModifiers();
-            this._cachedStatController = null;
-        }
-
-
         public override void OnRelease()
         {
-            if (statReleaseOption != StatModifierReleaseOption.OnEffectRelease)
-            {
-                return;
-            }
-            
             this.ReleaseModifiers();
             this._cachedStatController = null;
         }

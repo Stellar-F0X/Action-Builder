@@ -152,7 +152,7 @@ namespace ActionBuilder.Tool
             Assert.IsNotNull(action, "action is NullReference");
             AssetDatabase.AddObjectToAsset(effect, action);
             
-            effect.referencedAction = action;
+            effect.action = action;
             _effectViewList.itemsSource.Add(effect);
             
             _effectViewList.RefreshItems();

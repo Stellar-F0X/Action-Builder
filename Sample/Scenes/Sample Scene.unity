@@ -151,12 +151,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86ef139889d34d528fdf40d6374ec236, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debug: 0
-  _actionTemplates:
-  - {fileID: 11400000, guid: b281b825c3edbcf4bbe181a2fa0a5517, type: 2}
-  - {fileID: 11400000, guid: 4ac69cb9c7ecf4043b4b6df4d8994242, type: 2}
-  - {fileID: 11400000, guid: 568d4d6f041a5b440b32d4d00eec0ea4, type: 2}
-  - {fileID: 11400000, guid: 1e7b0f2995b53484c8dca53a1db534fb, type: 2}
+  _debug: 0
+  _actions: []
 --- !u!114 &946808359
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -169,6 +165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c29f0d844b7e6b41ab060c6ab502278, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  aa: 0
   _statSetTemplate: {fileID: 11400000, guid: 744435a81df34074993c701cd61afbcb, type: 2}
   _debug: 1
   _runtimeStat:

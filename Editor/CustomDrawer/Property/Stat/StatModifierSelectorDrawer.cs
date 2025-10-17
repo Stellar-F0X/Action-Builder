@@ -21,12 +21,22 @@ namespace ActionBuilder.Tool
         private Rect _modifierRect;
 
         private Rect _priorityRect;
-
-
         
+        private SerializedObject _actionSerializedObject;
+
+
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            SerializedProperty statSetTemplateProp = property.serializedObject.FindProperty("usingStatsTemplate");
+            if (_actionSerializedObject is null)
+            {
+                SerializedProperty actionProp = property.serializedObject.FindProperty("_action");
+                this._actionSerializedObject = new SerializedObject(actionProp.objectReferenceValue);
+            }
+            
+            _actionSerializedObject.Update();
+            
+            SerializedProperty statSetTemplateProp = _actionSerializedObject.FindProperty("usingStatsTemplate");
 
 
             if (statSetTemplateProp.objectReferenceValue == null)

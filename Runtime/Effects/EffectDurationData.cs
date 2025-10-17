@@ -4,8 +4,11 @@ using UnityEngine;
 namespace ActionBuilder.Runtime
 {
     [Serializable]
-    public struct ExecutionData
+    public struct EffectDurationData
     {
+        [Min(0)]
+        public float delay;
+        
         [Min(0)]
         public float duration;
         

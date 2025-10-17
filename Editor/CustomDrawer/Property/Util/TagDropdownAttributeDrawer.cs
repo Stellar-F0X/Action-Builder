@@ -17,8 +17,6 @@ namespace ActionBuilder.Tool
                 return;
             }
 
-            property.serializedObject.Update();
-
             using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
 
             string[] tagList = InternalEditorUtility.tags;

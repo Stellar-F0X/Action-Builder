@@ -1,10 +1,7 @@
 {
-    "name": "ActionBuilder.Runtime",
-    "rootNamespace": "ActionBuilder.Runtime",
-    "references": [
-        "GUID:49b49c76ee64f6b41bf28ef951cb0e50",
-        "GUID:da52e3d74d00ceb418f64edd8ac8b49f"
-    ],
+    "name": "HideIf.Runtime",
+    "rootNamespace": "HideIf.Runtime",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

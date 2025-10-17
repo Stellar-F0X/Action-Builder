@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HideIf.Runtime;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -9,6 +10,9 @@ namespace ActionBuilder.Runtime
     public class StatController : MonoBehaviour
     {
         private readonly Dictionary<string, Stat> _statsByStringKey = new Dictionary<string, Stat>();
+
+        [HideIf("_debug", true)]
+        public int aa;
 
 
         [SerializeReference, ReadOnly(true)]
