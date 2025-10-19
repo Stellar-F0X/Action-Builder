@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Codice.CM.Common;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -39,9 +40,8 @@ namespace ActionBuilder.Runtime
             for (int index = 0; index < _actions.Count; ++index)
             {
                 ActionBase clone = Object.Instantiate(_actions[index]);
-                clone.Initialize(this);
-                
-                _registeredActions.Add(clone);
+                clone.Initialize(this); 
+                _registeredActions.Add(clone); 
             }
         }
 
@@ -49,13 +49,172 @@ namespace ActionBuilder.Runtime
 
         private void Update()
         {
-            this.UpdateActions();
             this.UpdateEffects();
+            this.UpdateActions();
             this.DestroyObjects();
+        }
+
+        
+        
+        public bool HasAction(string actionName, bool searchInRunningActions = false)
+        {
+            if (_registeredActions.TryGetValue(actionName, out ActionBase targetAction) == false)
+            {
+                return false;
+            }
+            
+            if (searchInRunningActions)
+            {
+                return _runningActions.Find(a => a.hash == targetAction.hash);
+            }
+            else
+            {
+                return targetAction != null;
+            }
         }
 
 
 
+        public bool HasAction(string actionName, out ActionBase action, bool searchInRunningActions = false)
+        {
+            if (_registeredActions.TryGetValue(actionName, out action) == false)
+            {
+                return false;
+            }
+            
+            if (searchInRunningActions)
+            {
+                int targetHash = action.hash;
+
+                return _runningActions.Find(a => a.hash == targetHash);
+            }
+            else
+            {
+                return action != null;
+            }
+        }
+        
+        
+
+        public ActionBase Trigger(string actionName)
+        {
+            if (this.HasAction(actionName) == false)
+            {
+                Debug.LogWarning($"{actionName}이 존재하지 않습니다.");
+                return null;
+            }
+
+            ActionBase action = _registeredActions[actionName];
+            this.Trigger(action);
+            return action;
+        }
+
+
+
+        public void Trigger(ActionBase action)
+        {
+            if (action.Trigger())
+            {
+                this.AddActionToRunningQueue(action);
+            }
+            else
+            {
+                Debug.LogWarning($"{action.name}을 시작할 수 없습니다."); 
+            }
+        }
+
+
+
+        public void Cancel(string actionName)
+        {
+            if (this.HasAction(actionName, out ActionBase action, true))
+            {
+                action.Cancel();
+            }
+            else
+            {
+                Debug.LogError($"동작 중인 액션 {actionName}를 찾을 수 없습니다.");
+            }
+        }
+
+
+
+        public void ManualRelease(string actionName, string effectName)
+        {
+            if (string.IsNullOrEmpty(actionName) || string.IsNullOrEmpty(effectName))
+            {
+                Debug.LogError("Action Name 또는 Effect Name이 비었습니다.");
+                return;
+            }
+
+            if (this.HasAction(actionName, out ActionBase action, true) == false)
+            {
+                Debug.LogError($"{actionName}.{effectName}을 찾을 수 없습니다.");
+                return;
+            }
+
+            foreach (EffectBase effect in this._runningEffects[action.hash])
+            {
+                if (effect.name == effectName)
+                {
+                    effect.Release();
+                }
+            }
+        }
+
+
+
+        public EffectBase[] ManualApply(string actionName, string effectName)
+        {
+            if (string.IsNullOrEmpty(actionName) || string.IsNullOrEmpty(effectName))
+            {
+                Debug.LogError("Action Name 또는 Effect Name이 비었습니다.");
+                return Array.Empty<EffectBase>();
+            }
+            
+            if (this.HasAction(actionName, out ActionBase action, true))
+            {
+                EffectBase[] effects = this._runningEffects[action.hash].Where(effect => effect.name == effectName).ToArray();
+                
+                foreach (EffectBase effect in effects)
+                {
+                    effect.Apply();
+                }
+
+                return effects;
+            }
+
+            Debug.LogError($"{actionName}을 찾지 못했습니다.");
+            return Array.Empty<EffectBase>();
+        }
+
+
+
+        public bool ManualApply(EffectBase effect)
+        {
+            if (_runningActions.Contains(effect.action) == false)
+            {
+                return false;
+            }
+            
+            if (_runningEffects.TryGetValue(effect.action.hash, out List<EffectBase> list))
+            {
+                int idx = list.IndexOf(effect);
+
+                if (idx <= 0)
+                {
+                    return false;
+                }
+
+                list[idx].Apply();
+                return true;
+            }
+
+            return false;
+        }
+
+
+        
 #region Add / Remove Action
 
         public void AddActionToRunningQueue(ActionBase action)
@@ -129,12 +288,10 @@ namespace ActionBuilder.Runtime
 
                 action.Update();
 
-                if (action.IsFinish() == false)
+                if (action.CheckFinish() == false)
                 {
                     continue;
                 }
-
-                action.FinishAction();
 
                 foreach (EffectBase effects in _runningEffects[action.hash])
                 {
@@ -146,24 +303,24 @@ namespace ActionBuilder.Runtime
             {
                 ActionBase action = _actionQueues.Item2.Dequeue();
                 _runningActions.Remove(action);
-                _destroyQueue.Enqueue(action);
+                action.Reset();
             }
         }
 
 
-        private void ManageEffectsOnActionEnd(EffectBase effects)
+        private void ManageEffectsOnActionEnd(EffectBase effect)
         {
             bool finishEffect = false;
 
-            if (effects.endPolicy == EffectEndPolicy.StopOnActionEnd)
+            if (effect.endPolicy == EffectEndPolicy.StopOnActionEnd)
             {
                 finishEffect = true;
             }
 
             //Action에 종속된 Effect가 아니라면 Early Return.
-            if (effects.endPolicy == EffectEndPolicy.EffectDurationEnd)
+            if (effect.endPolicy == EffectEndPolicy.EffectDurationEnd)
             {
-                finishEffect |= effects.elapsedTime < effects.duration;
+                finishEffect |= effect.elapsedTime < effect.duration;
             }
 
             if (finishEffect == false)
@@ -172,14 +329,14 @@ namespace ActionBuilder.Runtime
             }
 
             //Action이 종료됐을 때, 자동으로 Release되는 옵션이 켜져있다면. 
-            if (effects.autoRelease)
+            if (effect.autoRelease)
             {
-                effects.Release();
+                effect.Release();
             }
-
-            effects.OnActionEnd();
-
-            _destroyQueue.Enqueue(effects);
+            
+            effect.OnActionEnd();
+            
+            this.RemoveEffectFromRunningQueue(effect);
         }
 
 #endregion
@@ -234,8 +391,10 @@ namespace ActionBuilder.Runtime
                     effect.Update();
                 }
 
-                if (effect.hasFinished)
+                if (effect.isOverDuration)
                 {
+                    effect.Release();
+                    
                     this.RemoveEffectFromRunningQueue(effect);
                 }
             }
@@ -258,7 +417,7 @@ namespace ActionBuilder.Runtime
                 }
                 else
                 {
-                    Object.DestroyImmediate(destroyTarget);
+                    Object.Destroy(destroyTarget);
                 }
             }
         }

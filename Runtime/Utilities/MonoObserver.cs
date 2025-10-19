@@ -19,7 +19,7 @@ namespace ActionBuilder.Runtime
 
 
 
-        public void Register(Func<bool> condition, Object subject, Action onDisabled = null)
+        public void Register(Object subject, Func<bool> condition, Action onDisabled = null)
         {
             if (condition == null)
             {
@@ -27,7 +27,7 @@ namespace ActionBuilder.Runtime
             }
             else
             {
-                _observeList.Add(new ObserveData(condition, onDisabled, subject));
+                _observeList.Add(new ObserveData(subject, condition, onDisabled));
             }
         }
 
@@ -100,11 +100,11 @@ namespace ActionBuilder.Runtime
     {
         private struct ObserveData : IEquatable<ObserveData>
         {
-            public ObserveData(Func<bool> condition, Action onDestroy, Object target)
+            public ObserveData(Object target, Func<bool> condition, Action onDestroy)
             {
+                this.target = target;
                 this.condition = condition;
                 this.onDestroy = onDestroy;
-                this.target = target;
             }
 
             public Func<bool> condition;

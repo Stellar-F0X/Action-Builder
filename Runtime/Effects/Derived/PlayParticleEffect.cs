@@ -8,38 +8,48 @@ namespace ActionBuilder.Runtime
 {
     public class PlayParticleEffect : EffectBase
     {
-        public event Action<ParticleSystem> onParticleStart;
-        public event Action<ParticleSystem> onParticleEnd;
+        public event Action<ParticleSystem> onParticleStarted;
+        public event Action<ParticleSystem> onParticleEnded;
 
         [Header("Particle Settings")]
         public GameObject particlePrefab;
 
-        public ParticleSystemStopBehavior stopBehavior;
-
         [SerializeReference, SubclassSelector]
-        public TargetResolver targetResolver;
+        public TargetResolver targetResolver = new DefaultTargetResolver();
 
-        public TransformOffset particleOffset;
+        public TransformOffset particleOffset = new TransformOffset()
+        {
+                positionOffset = Vector3.zero,
+                rotationOffset = Vector3.zero,
+                size = Vector3.one
+        };
 
         private Transform _trackingTransform;
         private ParticleSystem _particle;
 
 
+
         public override void OnApply()
         {
+            if (particlePrefab == null)
+            {
+                return;
+            }
+
             if (targetResolver is not null)
             {
                 _trackingTransform = targetResolver.GetTrackingTarget(this);
             }
 
-
             GameObject instantiated = Object.Instantiate(particlePrefab);
-            Assert.IsNotNull(instantiated);
-
             _particle = instantiated.GetComponent<ParticleSystem>();
-            Assert.IsNotNull(_particle);
 
-            _particle.transform.localScale = particleOffset.sizeOffset;
+            if (_particle == null)
+            {
+                return;
+            }
+
+            _particle.transform.localScale = particleOffset.size;
 
             this.UpdateParticleTransform();
 
@@ -48,7 +58,7 @@ namespace ActionBuilder.Runtime
                 _particle.Play();
             }
 
-            onParticleStart?.Invoke(_particle);
+            onParticleStarted?.Invoke(_particle);
         }
 
 
@@ -65,31 +75,15 @@ namespace ActionBuilder.Runtime
 
         public override void OnRelease()
         {
-            if (_particle.isStopped)
+            if (_particle.isStopped == false)
             {
-                onParticleEnd?.Invoke(_particle);
-                return;
+                _particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
 
-            _particle.Stop(true, stopBehavior);
-
-            if (stopBehavior != ParticleSystemStopBehavior.StopEmitting)
-            {
-                return;
-            }
-
-            Singleton<MonoObserver>.Instance.Register(() => _particle.isStopped, _particle, this.OnParticleStopped);
+            onParticleEnded?.Invoke(_particle);
+            _particle.gameObject.SetActive(false);
         }
 
-
-
-        private void OnParticleStopped()
-        {
-            this.onParticleEnd?.Invoke(_particle);
-            Object.DestroyImmediate(_particle.gameObject);
-        }
-
-        
 
         private void UpdateParticleTransform()
         {
@@ -102,6 +96,14 @@ namespace ActionBuilder.Runtime
 
             particleTrans.position = _trackingTransform.position + particleOffset.positionOffset;
             particleTrans.rotation = _trackingTransform.rotation * Quaternion.Euler(particleOffset.rotationOffset);
+        }
+
+        
+        private void OnDestroy()
+        {
+            this.Release();
+            
+            Object.Destroy(_particle.gameObject);
         }
     }
 }

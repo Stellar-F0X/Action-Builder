@@ -32,10 +32,6 @@ namespace ActionBuilder.Runtime
         public StatSet usingStatsTemplate;
 
 
-        /// <summary> 정규화된 경과 퍼센테이지 </summary>
-        private float _progress;
-
-
         /// <summary> Action 동작 경과 시간 </summary>
         private float _elapsedTime;
 
@@ -61,7 +57,7 @@ namespace ActionBuilder.Runtime
 
         public virtual bool isOnCooldown
         {
-            get { return _lastQuitTime + durationData.cooldownTime > Time.time; }
+            get { return _lastQuitTime > float.Epsilon && _lastQuitTime + durationData.cooldownTime > Time.time; }
         }
 
 
@@ -171,10 +167,11 @@ namespace ActionBuilder.Runtime
 
 
 
-        protected internal virtual void Initialize(ActionController actionOwner)
+        internal virtual void Initialize(ActionController actionOwner)
         {
             this._channels = new List<EventChannelBase>();
             this.controller = actionOwner;
+            this.name = name.Replace("(Clone)", "");
 
             if (actionOwner.TryGetComponent(out StatController foundStatController))
             {
@@ -186,24 +183,23 @@ namespace ActionBuilder.Runtime
                 Debug.LogError("StatController is not found in ActionController's GameObject");
             }
 
-            for (int index = 0; index < internalEffects.Count; ++index)
-            {
-                internalEffects[index].action = this;
-            }
+            this.OnInitialized();
         }
 
 
-
-        public virtual bool Trigger(bool force = false)
+        public virtual void Reset()
         {
-            if (isOnCooldown && force == false)
+            _lastQuitTime = 0;
+            _elapsedTime = 0;
+            _currentState = ActionState.Idle;
+        }
+
+
+        public virtual bool Trigger()
+        {
+            if (isOnCooldown || isActive)
             {
                 return false;
-            }
-
-            if (isActive && force)
-            {
-                this.FinishAction();
             }
 
             this._elapsedTime = 0f;
@@ -226,7 +222,7 @@ namespace ActionBuilder.Runtime
             this._currentState = ActionState.Paused;
             this.OnPause();
             this.onPaused?.Invoke(this);
-            
+
             for (int index = 0; index < _effects.Count; ++index)
             {
                 _effects[index].OnActionPause();
@@ -265,8 +261,6 @@ namespace ActionBuilder.Runtime
 
             this.OnCancel();
             this.onCancelled?.Invoke(this);
-
-            this.FinishAction();
         }
 
 
@@ -292,49 +286,62 @@ namespace ActionBuilder.Runtime
             float deltaTime = Time.deltaTime;
             this._elapsedTime += deltaTime;
             this.OnUpdate(deltaTime);
-            
-            for (int index = 0; index < _effects.Count; ++index)
+
+            foreach (EffectBase effect in _effects)
             {
-                if (_effects[index].executionData.delay < _elapsedTime)
-                {
-                    controller.AddEffectToRunningQueue(Object.Instantiate(_effects[index]));
-                }
+                this.CloneAndQueueEffect(effect);
             }
         }
 
 
-        public virtual bool IsFinish()
+        private void CloneAndQueueEffect(EffectBase effect)
         {
+            if (effect.executionData.delay >= _elapsedTime)
+            {
+                return;
+            }
+
+            EffectBase clonedEffect = Object.Instantiate(effect);
+
+            clonedEffect.name = clonedEffect.name.Replace("(Clone)", "");
+            clonedEffect.effectName = clonedEffect.name;
+            clonedEffect.action = this;
+
+            controller.AddEffectToRunningQueue(clonedEffect);
+        }
+
+
+
+        /// <summary> 조건에 따라 완료 여부를 확인하고, 액션이 끝났다면 종료 로직을 수행한다. </summary>
+        /// <returns> 액션의 종료 여부. </returns>
+        public virtual bool CheckFinish()
+        {
+            bool finish = false;
+
             switch (this.durationData.durationType)
             {
-                case ActionDuration.Duration: return _elapsedTime > duration && (finishResolver is null || finishResolver.CanExecute(this));
-                
+                case ActionDuration.Duration: finish = _elapsedTime > duration && (finishResolver is null || finishResolver.CanExecute(this)); break;
+
                 //instant는 finish Resolver가 없거나, 조건이 참이라면 그냥 끝낸다. 
-                case ActionDuration.Instant: return finishResolver is null || finishResolver.CanExecute(this);
+                case ActionDuration.Instant: finish =  finishResolver is null || finishResolver.CanExecute(this); break;
 
                 //반면, infinite는 Resolver가 있고, 조건에 맞아야지만 끝낸다. 
                 //이게 아니면 무조건 Cancel 함수 호출로만 Action을 종료할 수 있다.
-                case ActionDuration.Infinite: return finishResolver is not null && finishResolver.CanExecute(this);
+                case ActionDuration.Infinite: finish =  finishResolver is not null && finishResolver.CanExecute(this); break;
+            }
+
+            if (finish)
+            {
+                this._lastQuitTime = Time.time;
+                this._currentState = ActionState.Finished;
+
+                this.OnEnd();
+
+                Assert.IsNotNull(_effects);
+                this.onEnded?.Invoke(this);
             }
             
-            return false;
-        }
-
-
-        public virtual void FinishAction()
-        {
-            this._lastQuitTime = Time.time;
-            this._currentState = ActionState.Finished;
-
-            this.OnEnd();
-
-            Assert.IsNotNull(_effects);
-            this.onEnded?.Invoke(this);
-
-            for (int index = 0; index < _effects.Count; ++index)
-            {
-                _effects[index].OnActionEnd();
-            }
+            return finish;
         }
 
 
@@ -364,5 +371,8 @@ namespace ActionBuilder.Runtime
 
 
         protected virtual void OnValidateAction() { }
+
+
+        protected virtual void OnInitialized() { }
     }
 }

@@ -101,7 +101,7 @@ namespace ActionBuilder.Runtime
             get { return executionData.applyInterval; }
         }
         
-        public virtual bool hasFinished
+        public virtual bool isOverDuration
         {
             get { return _elapsedTime > duration; }
         }
@@ -167,7 +167,7 @@ namespace ActionBuilder.Runtime
                 return;
             }
             
-            if (forceRelease == false && (_released || hasFinished == false))
+            if (forceRelease == false && (_released || isOverDuration == false))
             {
                 return;
             }
@@ -183,7 +183,7 @@ namespace ActionBuilder.Runtime
 
         public void Update()
         {
-            if (this.enable == false || this.hasFinished)
+            if (this.enable == false || this.isOverDuration)
             {
                 return;
             }
