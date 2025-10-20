@@ -56,8 +56,6 @@ namespace ActionBuilder.Tool
                     case ActionDuration.Instant:
                     {
                         delayProp.floatValue = 0f;
-                        applyCountProp.intValue = 1;
-                        applyIntervalProp.floatValue = float.NaN;
 
                         using (new EditorGUI.DisabledScope(true))
                         {
@@ -65,56 +63,28 @@ namespace ActionBuilder.Tool
                         }
 
                         durationProp.floatValue = Mathf.Clamp(durationProp.floatValue, effect.durationLimit.min, effect.durationLimit.max);
-                        durationProp.floatValue = EditorGUI.FloatField(durationRect, "Duration", durationProp.floatValue);
-
-                        using (new EditorGUI.DisabledScope(true))
-                        {
-                            EditorGUI.IntField(maxCountRect, "Apply Count", applyCountProp.intValue);
-                            EditorGUI.FloatField(intervalRect, "Apply Interval", applyIntervalProp.floatValue);
-                        }
-
                         break;
                     }
 
                     case ActionDuration.Infinite:
-                    {
-                        applyCountProp.intValue = Mathf.Clamp(applyCountProp.intValue, 1, int.MaxValue);
-                        durationProp.floatValue = Mathf.Clamp(durationProp.floatValue, 0f, parentDuration);
-                        durationProp.floatValue = Mathf.Clamp(durationProp.floatValue, effect.durationLimit.min, effect.durationLimit.max);
-
-                        delayProp.floatValue = EditorGUI.FloatField(delayRect, "Delay", delayProp.floatValue);
-                        durationProp.floatValue = EditorGUI.FloatField(durationRect, "Duration", durationProp.floatValue);
-                        applyCountProp.intValue = EditorGUI.IntField(maxCountRect, "Apply Count", applyCountProp.intValue);
-
-                        using (new EditorGUI.DisabledScope(true))
-                        {
-                            bool isDurationZero = Mathf.Approximately(durationProp.floatValue, 0f);
-                            applyIntervalProp.floatValue = isDurationZero ? float.NaN : durationProp.floatValue / applyCountProp.intValue;
-                            EditorGUI.FloatField(intervalRect, "Apply Interval", applyIntervalProp.floatValue);
-                        }
-
-                        break;
-                    }
-
                     case ActionDuration.Duration:
                     {
                         applyCountProp.intValue = Mathf.Clamp(applyCountProp.intValue, 1, int.MaxValue);
                         durationProp.floatValue = Mathf.Clamp(durationProp.floatValue, 0f, parentDuration);
                         durationProp.floatValue = Mathf.Clamp(durationProp.floatValue, effect.durationLimit.min, effect.durationLimit.max);
-
                         delayProp.floatValue = EditorGUI.FloatField(delayRect, "Delay", delayProp.floatValue);
-                        durationProp.floatValue = EditorGUI.FloatField(durationRect, "Duration", durationProp.floatValue);
-                        applyCountProp.intValue = EditorGUI.IntField(maxCountRect, "Apply Count", applyCountProp.intValue);
-
-                        using (new EditorGUI.DisabledScope(true))
-                        {
-                            bool isDurationZero = Mathf.Approximately(durationProp.floatValue, 0f);
-                            applyIntervalProp.floatValue = isDurationZero ? float.NaN : durationProp.floatValue / applyCountProp.intValue;
-                            EditorGUI.FloatField(intervalRect, "Apply Interval", applyIntervalProp.floatValue);
-                        }
-
                         break;
                     }
+                }
+                
+                durationProp.floatValue = EditorGUI.FloatField(durationRect, "Duration", durationProp.floatValue);
+                applyCountProp.intValue = Mathf.Max(EditorGUI.IntField(maxCountRect, "Apply Count", applyCountProp.intValue), 1);
+                
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    bool isDurationZero = Mathf.Approximately(durationProp.floatValue, 0f);
+                    applyIntervalProp.floatValue = isDurationZero ? float.NaN : durationProp.floatValue / applyCountProp.intValue;
+                    EditorGUI.FloatField(intervalRect, "Apply Interval", applyIntervalProp.floatValue);
                 }
 
                 if (check.changed)

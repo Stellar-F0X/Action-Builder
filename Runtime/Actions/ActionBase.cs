@@ -31,7 +31,7 @@ namespace ActionBuilder.Runtime
 
 
         [SerializeReference, HideInInspector]
-        protected List<EffectBase> _effects;
+        protected List<EffectBase> _effectTemplates;
 
 
         /// <summary> Action 동작 경과 시간 </summary>
@@ -137,10 +137,8 @@ namespace ActionBuilder.Runtime
 
         internal List<EffectBase> internalEffectSO
         {
-            get { return _effects; }
+            get { return _effectTemplates; }
         }
-
-        protected List<EffectBase> _runtimeEffects;
 
 #endregion
 
@@ -149,7 +147,7 @@ namespace ActionBuilder.Runtime
         internal void OnCreate()
         {
             _identifyData = new IdentifyData(this.name);
-            _effects = new List<EffectBase>();
+            _effectTemplates = new List<EffectBase>();
         }
 
 
@@ -167,8 +165,6 @@ namespace ActionBuilder.Runtime
             
             this.name = name.Replace("(Clone)", "");
             this.actionName = name;
-
-            _runtimeEffects = new List<EffectBase>();
             
             this.OnInitialized();
         }
@@ -275,7 +271,7 @@ namespace ActionBuilder.Runtime
                 return;
             }
 
-            foreach (EffectBase effect in _effects)
+            foreach (EffectBase effect in _effectTemplates)
             {
                 this.InstantiateAndQueueEffect(effect);
             }
@@ -291,7 +287,7 @@ namespace ActionBuilder.Runtime
             }
             
             //effect duration이 0이라도 한 번은 재생시켜야되므로 한 번은 적용 후, 딜레이 + 재생시간이 duration보다 짧으면 종료.
-            if (effect.applyCount > 0 && (effect.executionData.delay + effect.duration) < _elapsedTime)
+            if (effect.currentApplyCount > 0 && (effect.executionData.delay + effect.duration) < _elapsedTime)
             {
                 return;
             }
@@ -328,8 +324,6 @@ namespace ActionBuilder.Runtime
                 this._currentState = ActionState.Finished;
 
                 this.OnEnd();
-
-                Assert.IsNotNull(_effects);
                 this.onEnded?.Invoke(this);
             }
 

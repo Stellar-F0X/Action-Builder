@@ -170,7 +170,7 @@ namespace ActionBuilder.Tool
             serializedObject.Update();
 
             EffectView view = visualElement.Q<EffectView>();
-            SerializedProperty effectListProp = serializedObject.FindProperty("_effects");
+            SerializedProperty effectListProp = serializedObject.FindProperty("_effectTemplates");
             SerializedProperty effectProp = effectListProp.GetArrayElementAtIndex(index);
 
             view.onDeleteRequested -= this.DeleteEffectOnClickedButton;

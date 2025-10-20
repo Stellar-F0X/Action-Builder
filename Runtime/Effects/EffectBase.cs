@@ -73,7 +73,7 @@ namespace ActionBuilder.Runtime
 
         public bool isApplyComplete
         {
-            get { return _currentApplyCount == applyCount; }
+            get { return _currentApplyCount == targetApplyCount; }
         }
 
         public bool isReleased
@@ -91,9 +91,14 @@ namespace ActionBuilder.Runtime
             get { return executionData.duration; }
         }
 
-        public int applyCount
+        public int targetApplyCount
         {
             get { return executionData.applyCount; }
+        }
+
+        public int currentApplyCount
+        {
+            get { return _currentApplyCount; }
         }
 
         public float applyInterval
@@ -217,9 +222,6 @@ namespace ActionBuilder.Runtime
 
 
         public virtual void OnActionResume() { }
-
-
-        public virtual void OnActionStart() { }
 
 
         public virtual void OnActionEnd() { }
