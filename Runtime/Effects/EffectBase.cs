@@ -205,23 +205,14 @@ namespace ActionBuilder.Runtime
             this.OnValidateEffect();
         }
 
+        
+        
 
+#region Action Event Callbacks
+        
+        public virtual void OnActionCancel() {  }
 
-        protected virtual void OnValidateEffect() { }
-
-
-        public virtual void OnReset() { }
-
-
-        public virtual void OnApply() { }
-
-
-        public virtual void OnUpdate(float deltaTime) { }
-
-
-        public virtual void OnRelease() { }
-
-
+        
         public virtual void OnActionPause() { }
 
 
@@ -232,5 +223,24 @@ namespace ActionBuilder.Runtime
 
 
         public virtual void OnActionEnd() { }
+
+#endregion
+
+        
+        
+
+        protected virtual void OnValidateEffect() { }
+
+
+        protected virtual void OnReset() { }
+
+
+        protected virtual void OnApply() { }
+
+
+        protected virtual void OnUpdate(float deltaTime) { }
+
+
+        protected virtual void OnRelease() { }
     }
 }

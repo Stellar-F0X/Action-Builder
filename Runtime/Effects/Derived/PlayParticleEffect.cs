@@ -30,7 +30,7 @@ namespace ActionBuilder.Runtime
 
 
 
-        public override void OnApply()
+        protected override void OnApply()
         {
             if (particlePrefab == null)
             {
@@ -64,7 +64,7 @@ namespace ActionBuilder.Runtime
         }
 
 
-        public override void OnUpdate(float deltaTime)
+        protected override void OnUpdate(float deltaTime)
         {
             if (targetResolver.spawnOnly)
             {
@@ -75,7 +75,7 @@ namespace ActionBuilder.Runtime
         }
 
 
-        public override void OnRelease()
+        protected override void OnRelease()
         {
             ParticleSystem activeParticle = _particle.Last();
             

@@ -8,7 +8,7 @@ namespace ActionBuilder.Runtime
     {
         public List<StatModifierSelector> selectors = new List<StatModifierSelector>();
 
-        private StatController _cachedStatController;
+        private StatController _statController;
 
 
 
@@ -57,44 +57,35 @@ namespace ActionBuilder.Runtime
         }
 
 
-        public override void Apply()
+        protected override void OnApply()
         {
-            Assert.IsNotNull(selectors);
-
-            if (base.action.statController == null)
+            if (this.selectors.Count == 0)
             {
-                _cachedStatController = base.action.controller.GetComponent<StatController>();
+                return;
             }
-            else
-            {
-                _cachedStatController = base.action.statController;
-            }
+            
+            _statController = base.action.controller.GetComponent<StatController>();
 
             foreach (StatModifierSelector selector in selectors)
             {
-                Stat stat = _cachedStatController.GetStat(selector.statKey);
-                stat?.AddModifier(selector.modifier);
+                _statController.GetStat(selector.statKey)?.AddModifier(selector.modifier);
             }
         }
 
 
-        public override void OnRelease()
+        protected override void OnRelease()
         {
-            this.ReleaseModifiers();
-            this._cachedStatController = null;
-        }
-
-
-        private void ReleaseModifiers()
-        {
-            Assert.IsNotNull(selectors);
-
+            if (this.selectors.Count == 0)
+            {
+                return;
+            }
+            
             foreach (StatModifierSelector selector in selectors)
             {
-                Stat stat = _cachedStatController.GetStat(selector.statKey);
-                stat?.RemoveModifier(selector.modifier);
-                StatModifierPool.Release(selector.modifier);
+                _statController.GetStat(selector.statKey)?.RemoveModifier(selector.modifier);
             }
+            
+            this._statController = null;
         }
     }
 }

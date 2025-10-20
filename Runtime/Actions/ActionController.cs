@@ -300,9 +300,9 @@ namespace ActionBuilder.Runtime
                     return;
                 }
 
-                if (action.CheckFinish())
+                if (action.CheckFinish() && _runningEffects.TryGetValue(action.hash, out var list))
                 {
-                    _runningEffects[action.hash].ForEach(e => this.ManageEffectsOnActionEnd(e));
+                    list.ForEach(this.ManageEffectsOnActionEnd);
                     _actionQueues.Item2.Enqueue(action);
                 }
                 else
@@ -405,7 +405,10 @@ namespace ActionBuilder.Runtime
 
                 if (effect.isOverDuration)
                 {
-                    effect.Release();
+                    if (effect.autoRelease)
+                    {
+                        effect.Release();
+                    }
                     
                     this.RemoveEffectFromRunningQueue(effect);
                 }

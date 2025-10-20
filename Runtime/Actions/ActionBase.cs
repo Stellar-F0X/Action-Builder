@@ -71,14 +71,6 @@ namespace ActionBuilder.Runtime
             get { return _currentState is ActionState.Playing or ActionState.Paused; }
         }
 
-
-        public StatController statController
-        {
-            get;
-            set;
-        }
-
-
         public ActionController controller
         {
             get;
@@ -114,6 +106,8 @@ namespace ActionBuilder.Runtime
         public string actionName
         {
             get { return _identifyData.name; }
+            
+            private set { _identifyData.name = value; }
         }
 
 
@@ -146,6 +140,8 @@ namespace ActionBuilder.Runtime
             get { return _effects; }
         }
 
+        protected List<EffectBase> _runtimeEffects;
+
 #endregion
 
 
@@ -168,18 +164,12 @@ namespace ActionBuilder.Runtime
         internal virtual void Initialize(ActionController actionOwner)
         {
             this.controller = actionOwner;
+            
             this.name = name.Replace("(Clone)", "");
+            this.actionName = name;
 
-            if (actionOwner.TryGetComponent(out StatController foundStatController))
-            {
-                this.statController = foundStatController;
-            }
-
-            if (statController == null)
-            {
-                Debug.LogError("StatController is not found in ActionController's GameObject");
-            }
-
+            _runtimeEffects = new List<EffectBase>();
+            
             this.OnInitialized();
         }
 
@@ -216,13 +206,10 @@ namespace ActionBuilder.Runtime
             }
 
             this._currentState = ActionState.Paused;
+            
             this.OnPause();
             this.onPaused?.Invoke(this);
-
-            for (int index = 0; index < _effects.Count; ++index)
-            {
-                _effects[index].OnActionPause();
-            }
+            this.controller.GetRunningEffects(hash)?.ForEach(e => e.OnActionPause());
         }
 
 
@@ -235,13 +222,10 @@ namespace ActionBuilder.Runtime
             }
 
             this._currentState = ActionState.Playing;
+            
             this.OnResume();
             this.onResumed?.Invoke(this);
-
-            for (int index = 0; index < _effects.Count; ++index)
-            {
-                _effects[index].OnActionResume();
-            }
+            this.controller.GetRunningEffects(hash)?.ForEach(e => e.OnActionResume());
         }
 
 
@@ -257,6 +241,7 @@ namespace ActionBuilder.Runtime
 
             this.OnCancel();
             this.onCancelled?.Invoke(this);
+            this.controller.GetRunningEffects(hash)?.ForEach(e => e.OnActionCancel());
         }
 
 
@@ -285,6 +270,11 @@ namespace ActionBuilder.Runtime
             this._elapsedTime += deltaTime;
             this.OnUpdate(deltaTime);
 
+            if ((controller.GetRunningEffects(hash)?.Count ?? 0) == internalEffectSO.Count)
+            {
+                return;
+            }
+
             foreach (EffectBase effect in _effects)
             {
                 this.InstantiateAndQueueEffect(effect);
@@ -294,14 +284,14 @@ namespace ActionBuilder.Runtime
 
         private void InstantiateAndQueueEffect(EffectBase effect)
         {
-            if (effect.executionData.delay >= _elapsedTime || effect.duration < _elapsedTime)
+            //경과 시간이 시작 딜레이보다 짧으면 아직 실행되면 안되므로 종료.
+            if (effect.executionData.delay > _elapsedTime)
             {
                 return;
             }
-
-            List<EffectBase> instantiated = controller.GetRunningEffects(hash);
-
-            if (instantiated != null && instantiated.Count == internalEffectSO.Count)
+            
+            //effect duration이 0이라도 한 번은 재생시켜야되므로 한 번은 적용 후, 딜레이 + 재생시간이 duration보다 짧으면 종료.
+            if (effect.applyCount > 0 && (effect.executionData.delay + effect.duration) < _elapsedTime)
             {
                 return;
             }
