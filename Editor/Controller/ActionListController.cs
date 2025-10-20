@@ -15,8 +15,8 @@ namespace ActionBuilder.Tool
             _effectViewList = effectsView;
             _handleAddButton = handleAddButton;
 
-            handleAddButton.clickable.clickedWithEventInfo -= this.CreateeffectOnClickedButton;
-            handleAddButton.clickable.clickedWithEventInfo += this.CreateeffectOnClickedButton;
+            handleAddButton.clickable.clickedWithEventInfo -= this.CreateEffectOnClickedButton;
+            handleAddButton.clickable.clickedWithEventInfo += this.CreateEffectOnClickedButton;
 
             effectsView.bindItem -= this.BindEffectVisualElement;
             effectsView.bindItem += this.BindEffectVisualElement;
@@ -31,7 +31,7 @@ namespace ActionBuilder.Tool
         {
             ActionBase action = (ActionBase)_inspectorController.selectedObject.targetObject; 
             
-            if (action.internalEffects is null)
+            if (action.internalEffectSO is null)
             {
                 _effectViewList.itemsSource = null;
                 _inspectorController.style.display = DisplayStyle.None;
@@ -40,9 +40,9 @@ namespace ActionBuilder.Tool
 
             _handleAddButton.style.display = DisplayStyle.Flex;
             _inspectorController.style.display = DisplayStyle.Flex;
-            _effectViewList.itemsSource = action.internalEffects;
+            _effectViewList.itemsSource = action.internalEffectSO;
 
-            if (action.internalEffects.Count == 0)
+            if (action.internalEffectSO.Count == 0)
             {
                 _effectViewList.style.display = DisplayStyle.None;
             }
@@ -117,7 +117,7 @@ namespace ActionBuilder.Tool
         }
         
         
-        private void CreateeffectOnClickedButton(EventBase evt)
+        private void CreateEffectOnClickedButton(EventBase evt)
         {
             BindingWindow window = BindingWindowBuilder.GetBuilder("Effects")
                                                        .AddFactoryModule(
@@ -192,12 +192,12 @@ namespace ActionBuilder.Tool
             ActionBase action = _objectList[selectedIndex] as ActionBase;
             Assert.IsNotNull(action);
 
-            if (action.internalEffects == null || action.internalEffects.Count == 0)
+            if (action.internalEffectSO == null || action.internalEffectSO.Count == 0)
             {
                 return;
             }
 
-            int effectIndex = action.internalEffects.IndexOf(view.effect);
+            int effectIndex = action.internalEffectSO.IndexOf(view.effect);
 
             if (effectIndex < 0)
             {
@@ -205,9 +205,9 @@ namespace ActionBuilder.Tool
             }
 
             AssetDatabase.RemoveObjectFromAsset(view.effect);
-            action.internalEffects.RemoveAt(effectIndex);
+            action.internalEffectSO.RemoveAt(effectIndex);
 
-            if (action.internalEffects.Count == 0)
+            if (action.internalEffectSO.Count == 0)
             {
                 _effectViewList.style.display = DisplayStyle.None;
             }

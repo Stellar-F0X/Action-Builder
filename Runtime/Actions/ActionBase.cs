@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HideIf.Runtime;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Object = UnityEngine.Object;
@@ -15,21 +17,21 @@ namespace ActionBuilder.Runtime
         public event Action<ActionBase> onCancelled;
 
 
+
         [SerializeField, Space(-15)]
         protected IdentifyData _identifyData;
+
 
         [Space(5)]
         public ActionDurationData durationData;
 
-        /// <summary>
-        /// 현재 상황에 따라 액션을 끝낸거나 연장할 수 도 있다.
-        /// 몇 가지 추가 기능을 수행할 수 있다.
-        /// </summary>
-        [SerializeReference, SubclassSelector]
-        public ConditionBase finishResolver;
 
         [SerializeReference]
         public StatSet usingStatsTemplate;
+
+
+        [SerializeReference, HideInInspector]
+        protected List<EffectBase> _effects;
 
 
         /// <summary> Action 동작 경과 시간 </summary>
@@ -40,16 +42,13 @@ namespace ActionBuilder.Runtime
         private float _lastQuitTime;
 
 
+        private int _tickedCount;
+
+
         /// <summary> 현재 동작 중인 상태 </summary>
         private ActionState _currentState;
 
 
-        [SerializeReference, HideInInspector]
-        protected List<EffectBase> _effects;
-
-
-        /// <summary> Runtime only </summary>
-        protected List<EventChannelBase> _channels;
 
 
 
@@ -57,7 +56,7 @@ namespace ActionBuilder.Runtime
 
         public virtual bool isOnCooldown
         {
-            get { return _lastQuitTime > float.Epsilon && _lastQuitTime + durationData.cooldownTime > Time.time; }
+            get { return _lastQuitTime > float.Epsilon && (_lastQuitTime + durationData.cooldownTime) > Time.time; }
         }
 
 
@@ -142,7 +141,7 @@ namespace ActionBuilder.Runtime
         }
 
 
-        internal List<EffectBase> internalEffects
+        internal List<EffectBase> internalEffectSO
         {
             get { return _effects; }
         }
@@ -154,7 +153,6 @@ namespace ActionBuilder.Runtime
         internal void OnCreate()
         {
             _identifyData = new IdentifyData(this.name);
-            _channels = new List<EventChannelBase>();
             _effects = new List<EffectBase>();
         }
 
@@ -169,7 +167,6 @@ namespace ActionBuilder.Runtime
 
         internal virtual void Initialize(ActionController actionOwner)
         {
-            this._channels = new List<EventChannelBase>();
             this.controller = actionOwner;
             this.name = name.Replace("(Clone)", "");
 
@@ -189,8 +186,8 @@ namespace ActionBuilder.Runtime
 
         public virtual void Reset()
         {
-            _lastQuitTime = 0;
             _elapsedTime = 0;
+            _tickedCount = 0;
             _currentState = ActionState.Idle;
         }
 
@@ -209,7 +206,6 @@ namespace ActionBuilder.Runtime
             this.onStarted?.Invoke(this);
             return true;
         }
-
 
 
         public virtual void Pause()
@@ -283,20 +279,29 @@ namespace ActionBuilder.Runtime
                 return;
             }
 
+            _tickedCount++;
+
             float deltaTime = Time.deltaTime;
             this._elapsedTime += deltaTime;
             this.OnUpdate(deltaTime);
 
             foreach (EffectBase effect in _effects)
             {
-                this.CloneAndQueueEffect(effect);
+                this.InstantiateAndQueueEffect(effect);
             }
         }
 
 
-        private void CloneAndQueueEffect(EffectBase effect)
+        private void InstantiateAndQueueEffect(EffectBase effect)
         {
-            if (effect.executionData.delay >= _elapsedTime)
+            if (effect.executionData.delay >= _elapsedTime || effect.duration < _elapsedTime)
+            {
+                return;
+            }
+
+            List<EffectBase> instantiated = controller.GetRunningEffects(hash);
+
+            if (instantiated != null && instantiated.Count == internalEffectSO.Count)
             {
                 return;
             }
@@ -320,14 +325,11 @@ namespace ActionBuilder.Runtime
 
             switch (this.durationData.durationType)
             {
-                case ActionDuration.Duration: finish = _elapsedTime > duration && (finishResolver is null || finishResolver.CanExecute(this)); break;
+                case ActionDuration.Duration: finish = _elapsedTime > duration; break;
 
-                //instant는 finish Resolver가 없거나, 조건이 참이라면 그냥 끝낸다. 
-                case ActionDuration.Instant: finish =  finishResolver is null || finishResolver.CanExecute(this); break;
+                case ActionDuration.Instant: finish = _tickedCount > 0; break;
 
-                //반면, infinite는 Resolver가 있고, 조건에 맞아야지만 끝낸다. 
-                //이게 아니면 무조건 Cancel 함수 호출로만 Action을 종료할 수 있다.
-                case ActionDuration.Infinite: finish =  finishResolver is not null && finishResolver.CanExecute(this); break;
+                case ActionDuration.Infinite: finish = currentState is ActionState.Cancelled; break;
             }
 
             if (finish)
@@ -340,7 +342,7 @@ namespace ActionBuilder.Runtime
                 Assert.IsNotNull(_effects);
                 this.onEnded?.Invoke(this);
             }
-            
+
             return finish;
         }
 

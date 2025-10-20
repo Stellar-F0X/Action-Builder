@@ -18,7 +18,7 @@ namespace ActionBuilder.Runtime
         
         
         
-        private readonly ActionDictionary _registeredActions = new ActionDictionary();
+        private readonly ActionDictionary _registeredActionPool = new ActionDictionary();
         
         private readonly List<ActionBase> _runningActions = new List<ActionBase>();
 
@@ -41,7 +41,7 @@ namespace ActionBuilder.Runtime
             {
                 ActionBase clone = Object.Instantiate(_actions[index]);
                 clone.Initialize(this); 
-                _registeredActions.Add(clone); 
+                _registeredActionPool.Add(clone); 
             }
         }
 
@@ -54,11 +54,25 @@ namespace ActionBuilder.Runtime
             this.DestroyObjects();
         }
 
+
+
+        public List<EffectBase> GetRunningEffects(int actionHash)
+        {
+            return _runningEffects.GetValueOrDefault(actionHash);
+        }
+
+
+
+        public List<ActionBase> GetRunningActions()
+        {
+            return _runningActions;
+        }
+
         
         
         public bool HasAction(string actionName, bool searchInRunningActions = false)
         {
-            if (_registeredActions.TryGetValue(actionName, out ActionBase targetAction) == false)
+            if (_registeredActionPool.TryGetValue(actionName, out ActionBase targetAction) == false)
             {
                 return false;
             }
@@ -77,7 +91,7 @@ namespace ActionBuilder.Runtime
 
         public bool HasAction(string actionName, out ActionBase action, bool searchInRunningActions = false)
         {
-            if (_registeredActions.TryGetValue(actionName, out action) == false)
+            if (_registeredActionPool.TryGetValue(actionName, out action) == false)
             {
                 return false;
             }
@@ -104,7 +118,7 @@ namespace ActionBuilder.Runtime
                 return null;
             }
 
-            ActionBase action = _registeredActions[actionName];
+            ActionBase action = _registeredActionPool[actionName];
             this.Trigger(action);
             return action;
         }
@@ -286,16 +300,14 @@ namespace ActionBuilder.Runtime
                     return;
                 }
 
-                action.Update();
-
-                if (action.CheckFinish() == false)
+                if (action.CheckFinish())
                 {
-                    continue;
+                    _runningEffects[action.hash].ForEach(e => this.ManageEffectsOnActionEnd(e));
+                    _actionQueues.Item2.Enqueue(action);
                 }
-
-                foreach (EffectBase effects in _runningEffects[action.hash])
+                else
                 {
-                    this.ManageEffectsOnActionEnd(effects);
+                    action.Update();
                 }
             }
 
@@ -320,7 +332,7 @@ namespace ActionBuilder.Runtime
             //Action에 종속된 Effect가 아니라면 Early Return.
             if (effect.endPolicy == EffectEndPolicy.EffectDurationEnd)
             {
-                finishEffect |= effect.elapsedTime < effect.duration;
+                finishEffect |= effect.elapsedTime > effect.duration;
             }
 
             if (finishEffect == false)

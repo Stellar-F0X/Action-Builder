@@ -22,11 +22,11 @@ namespace ActionBuilder.Tool
                 AssetDatabase.CreateFolder("Assets", "Resources");
             }
 
-            const string effectFolder = resourcesRoot + "/Tag";
+            const string effectFolder = resourcesRoot + "/Tags";
             
             if (AssetDatabase.IsValidFolder(effectFolder) == false)
             {
-                AssetDatabase.CreateFolder(resourcesRoot, "Tag");
+                AssetDatabase.CreateFolder(resourcesRoot, "Tags");
             }
             
             createdObject.name = string.IsNullOrEmpty(entryName) ? type.Name : entryName;

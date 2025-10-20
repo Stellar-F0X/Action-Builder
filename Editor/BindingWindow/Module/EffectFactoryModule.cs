@@ -18,8 +18,9 @@ namespace ActionBuilder.Tool
             EffectBase effectBase = createdObject as EffectBase;
             Assert.IsNotNull(effectBase);
             
-            effectBase.effectName = entryName;
             effectBase.hideFlags = HideFlags.HideInHierarchy;
+            effectBase.effectName = entryName;
+            effectBase.name = entryName;
             
             EditorUtility.SetDirty(effectBase);
             return effectBase;

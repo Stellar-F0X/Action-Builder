@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Object = UnityEngine.Object;
@@ -16,16 +18,15 @@ namespace ActionBuilder.Runtime
 
         [SerializeReference, SubclassSelector]
         public TargetResolver targetResolver = new DefaultTargetResolver();
-
         public TransformOffset particleOffset = new TransformOffset()
         {
-                positionOffset = Vector3.zero,
-                rotationOffset = Vector3.zero,
-                size = Vector3.one
+            positionOffset = Vector3.zero,
+            rotationOffset = Vector3.zero,
+            size = Vector3.one
         };
 
         private Transform _trackingTransform;
-        private ParticleSystem _particle;
+        private List<ParticleSystem> _particle = new List<ParticleSystem>();
 
 
 
@@ -42,23 +43,24 @@ namespace ActionBuilder.Runtime
             }
 
             GameObject instantiated = Object.Instantiate(particlePrefab);
-            _particle = instantiated.GetComponent<ParticleSystem>();
+            _particle.Add(instantiated.GetComponent<ParticleSystem>());
 
             if (_particle == null)
             {
                 return;
             }
 
-            _particle.transform.localScale = particleOffset.size;
+            ParticleSystem activeParticle = _particle.Last();
+            activeParticle.transform.localScale = particleOffset.size;
 
             this.UpdateParticleTransform();
 
-            if (_particle.main.playOnAwake == false)
+            if (activeParticle.main.playOnAwake == false)
             {
-                _particle.Play();
+                activeParticle.Play();
             }
 
-            onParticleStarted?.Invoke(_particle);
+            onParticleStarted?.Invoke(activeParticle);
         }
 
 
@@ -75,13 +77,15 @@ namespace ActionBuilder.Runtime
 
         public override void OnRelease()
         {
-            if (_particle.isStopped == false)
+            ParticleSystem activeParticle = _particle.Last();
+            
+            if (activeParticle.isStopped == false)
             {
-                _particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                activeParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
 
-            onParticleEnded?.Invoke(_particle);
-            _particle.gameObject.SetActive(false);
+            onParticleEnded?.Invoke(activeParticle);
+            activeParticle.gameObject.SetActive(false);
         }
 
 
@@ -92,18 +96,26 @@ namespace ActionBuilder.Runtime
                 return;
             }
 
-            Transform particleTrans = _particle.transform;
+            Transform particleTrans = _particle.Last().transform;
 
             particleTrans.position = _trackingTransform.position + particleOffset.positionOffset;
             particleTrans.rotation = _trackingTransform.rotation * Quaternion.Euler(particleOffset.rotationOffset);
         }
 
-        
+
         private void OnDestroy()
         {
+            if (_particle == null)
+            {
+                return;
+            }
+
             this.Release();
-            
-            Object.Destroy(_particle.gameObject);
+
+            for (int index = 0; index < _particle.Count; ++index)
+            {
+                Object.Destroy(_particle[index].gameObject);
+            }
         }
     }
 }

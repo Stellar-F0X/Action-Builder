@@ -29,9 +29,8 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKeyDown(triggerList[i].keyCode))
             {
                 KeyActionNamePair pair = triggerList[i];
-                //Assert.IsTrue(actionController.HasAction(pair.useActionName));
-                
-                //actionController.TriggerAction(pair.useActionName);
+                Assert.IsTrue(actionController.HasAction(pair.useActionName));
+                actionController.Trigger(pair.useActionName);
             }
         }
 

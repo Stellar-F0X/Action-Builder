@@ -152,7 +152,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _debug: 0
-  _actions: []
+  _actions:
+  - {fileID: 11400000, guid: 758528ebe2d731d4880828a29edd15f8, type: 2}
 --- !u!114 &946808359
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -206,12 +207,6 @@ MonoBehaviour:
   triggerList:
   - keyCode: 49
     useActionName: Test Action 1
-  - keyCode: 50
-    useActionName: Test Action 2
-  - keyCode: 51
-    useActionName: Test Action 3
-  - keyCode: 52
-    useActionName: Test Action 4
   actionController: {fileID: 946808358}
 --- !u!212 &946808362
 SpriteRenderer:
