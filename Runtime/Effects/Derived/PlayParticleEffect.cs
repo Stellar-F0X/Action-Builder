@@ -26,7 +26,7 @@ namespace ActionBuilder.Runtime
         };
 
         private Transform _trackingTransform;
-        private List<ParticleSystem> _particle = new List<ParticleSystem>();
+        private List<ParticleSystem> _particles = new List<ParticleSystem>();
 
 
 
@@ -43,14 +43,14 @@ namespace ActionBuilder.Runtime
             }
 
             GameObject instantiated = Object.Instantiate(particlePrefab);
-            _particle.Add(instantiated.GetComponent<ParticleSystem>());
+            _particles.Add(instantiated.GetComponent<ParticleSystem>());
 
-            if (_particle == null)
+            if (_particles == null)
             {
                 return;
             }
 
-            ParticleSystem activeParticle = _particle.Last();
+            ParticleSystem activeParticle = _particles.Last();
             activeParticle.transform.localScale = particleOffset.size;
 
             this.UpdateParticleTransform();
@@ -77,7 +77,7 @@ namespace ActionBuilder.Runtime
 
         protected override void OnRelease()
         {
-            ParticleSystem activeParticle = _particle.Last();
+            ParticleSystem activeParticle = _particles.Last();
             
             if (activeParticle.isStopped == false)
             {
@@ -96,7 +96,7 @@ namespace ActionBuilder.Runtime
                 return;
             }
 
-            Transform particleTrans = _particle.Last().transform;
+            Transform particleTrans = _particles.Last().transform;
 
             particleTrans.position = _trackingTransform.position + particleOffset.positionOffset;
             particleTrans.rotation = _trackingTransform.rotation * Quaternion.Euler(particleOffset.rotationOffset);
@@ -105,17 +105,22 @@ namespace ActionBuilder.Runtime
 
         private void OnDestroy()
         {
-            if (_particle == null)
-            {
-                return;
-            }
-
+            Assert.IsNotNull(_particles, $"{typeof(PlayParticleEffect)}: particles is null");
+            
             this.Release();
-
-            for (int index = 0; index < _particle.Count; ++index)
+            
+            for (int index = 0; index < _particles.Count; ++index)
             {
-                Object.Destroy(_particle[index].gameObject);
+                if (_particles[index] == null)
+                {
+                    continue;
+                }
+
+                Object.Destroy(_particles[index].gameObject);
+                _particles[index] = null;
             }
+            
+            _particles = null;
         }
     }
 }

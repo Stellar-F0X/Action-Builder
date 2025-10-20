@@ -21,7 +21,6 @@ namespace ActionBuilder.Runtime
         [SerializeField, Space(-15)]
         protected IdentifyData _identifyData;
 
-
         [Space(5)]
         public ActionDurationData durationData;
 
@@ -32,20 +31,25 @@ namespace ActionBuilder.Runtime
 
         [SerializeReference, HideInInspector]
         protected List<EffectBase> _effectTemplates;
+        
 
-
-        /// <summary> Action 동작 경과 시간 </summary>
+        /// <summary> Action 동작 경과 시간. </summary>
         private float _elapsedTime;
 
 
-        /// <summary> 마지막으로 실행이 종료되었던 시간 </summary>
+        /// <summary> 마지막으로 실행이 종료되었던 시간. </summary>
         private float _lastQuitTime;
 
 
+        // <summary> 현재 액션이 트리거 된 후, 업데이트된 횟수. </summary>
         private int _tickedCount;
 
+        
+        // <summary> 현재 액션이 생성시킨 이펙트 개수. </summary>
+        private int _createdEffectCount;
 
-        /// <summary> 현재 동작 중인 상태 </summary>
+
+        /// <summary> 현재 동작 중인 상태. </summary>
         private ActionState _currentState;
 
 
@@ -162,7 +166,6 @@ namespace ActionBuilder.Runtime
         internal virtual void Initialize(ActionController actionOwner)
         {
             this.controller = actionOwner;
-            
             this.name = name.Replace("(Clone)", "");
             this.actionName = name;
             
@@ -174,6 +177,7 @@ namespace ActionBuilder.Runtime
         {
             _elapsedTime = 0;
             _tickedCount = 0;
+            _createdEffectCount = 0;
             _currentState = ActionState.Idle;
         }
 
@@ -184,7 +188,8 @@ namespace ActionBuilder.Runtime
             {
                 return false;
             }
-
+            
+            
             this._elapsedTime = 0f;
             this._currentState = ActionState.Playing;
 
@@ -266,7 +271,7 @@ namespace ActionBuilder.Runtime
             this._elapsedTime += deltaTime;
             this.OnUpdate(deltaTime);
 
-            if ((controller.GetRunningEffects(hash)?.Count ?? 0) == internalEffectSO.Count)
+            if (_createdEffectCount == internalEffectSO.Count)
             {
                 return;
             }
@@ -298,6 +303,7 @@ namespace ActionBuilder.Runtime
             clonedEffect.effectName = clonedEffect.name;
             clonedEffect.action = this;
 
+            _createdEffectCount++;
             controller.AddEffectToRunningQueue(clonedEffect);
         }
 
@@ -333,7 +339,7 @@ namespace ActionBuilder.Runtime
 
         public override string ToString()
         {
-            return $"{typeof(ActionBase)} {actionName} (State: {_currentState}, Cooldown: {isOnCooldown}, Elapsed: {_elapsedTime:F2}s)";
+            return $"{typeof(ActionBase)}: {actionName} (State: {_currentState}, Cooldown: {isOnCooldown}, Elapsed: {_elapsedTime:F2}s)";
         }
 
 
