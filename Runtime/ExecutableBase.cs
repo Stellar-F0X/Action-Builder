@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace ActionBuilder.Runtime
 {
@@ -6,8 +7,9 @@ namespace ActionBuilder.Runtime
     {
         [SerializeField, Space(-15)]
         protected IdentifyData _identifyData;
-
+        
         protected float _elapsedTime;
+        
         
         
         public float elapsedTime
@@ -58,6 +60,22 @@ namespace ActionBuilder.Runtime
         {
             get;
             set;
+        }
+
+        public bool isInstant
+        {
+            get;
+            private set;
+        }
+
+
+        public virtual TChildType InstantiateSelf<TChildType>() where TChildType : ExecutableBase
+        {
+            ExecutableBase ins = Object.Instantiate(this);
+            Assert.IsNotNull(ins, "failed to instantiate");
+            ins.name = ins.name.Replace("(Clone)", "");
+            ins.isInstant = true;
+            return ins as TChildType;
         }
     }
 }

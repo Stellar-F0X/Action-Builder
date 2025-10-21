@@ -118,8 +118,6 @@ namespace ActionBuilder.Runtime
         internal virtual void Initialize(ActionController actionOwner)
         {
             this.controller = actionOwner;
-            this.name = name.Replace("(Clone)", "");
-            
             this.OnInitialized();
         }
 
@@ -251,9 +249,7 @@ namespace ActionBuilder.Runtime
             //effect duration이 0이라도 한 번은 재생시켜야되므로 한 번은 적용 후, 딜레이 + 재생시간이 duration보다 짧으면 종료.
             if (effect.currentApplyCount == 0 || (effect.executionData.delay + effect.duration) > _elapsedTime)
             {
-                EffectBase clonedEffect = Object.Instantiate(effect);
-
-                clonedEffect.name = clonedEffect.name.Replace("(Clone)", "");
+                EffectBase clonedEffect = effect.InstantiateSelf<EffectBase>();
                 clonedEffect.controller = this.controller;
                 clonedEffect.action = this;
 

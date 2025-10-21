@@ -44,7 +44,7 @@ namespace ActionBuilder.Runtime
             
             for (int index = 0; index < _actions.Count; ++index)
             {
-                ActionBase clone = Object.Instantiate(_actions[index]);
+                ActionBase clone = _actions[index].InstantiateSelf<ActionBase>();
                 clone.Initialize(this);
                 _actionTemplates.Add(clone);
             }
@@ -74,7 +74,10 @@ namespace ActionBuilder.Runtime
         }
 
 
-
+        
+        
+#region Control Actions
+        
         public bool HasAction(string actionName, bool searchInRunningActions = false)
         {
             if (_actionTemplates.TryGetValue(actionName, out ActionBase targetAction) == false)
@@ -136,7 +139,7 @@ namespace ActionBuilder.Runtime
 
             if (original != null)
             {
-                action = Object.Instantiate(original);
+                action = original.InstantiateSelf<ActionBase>();
                 action.Initialize(this);
                 this.TriggerAction(action);
                 return action;
@@ -145,9 +148,9 @@ namespace ActionBuilder.Runtime
             Debug.LogWarning($"{actionName}이 존재하지 않습니다.");
             return null;
         }
-
-
-
+        
+        
+        
         public void TriggerAction(ActionBase action)
         {
             if (action.Trigger())
@@ -201,9 +204,13 @@ namespace ActionBuilder.Runtime
                 Debug.LogError($"동작 중인 액션 {actionName}를 찾을 수 없습니다.");
             }
         }
+        
+#endregion
 
 
 
+#region Control Effects
+        
         public void StopAllEffects()
         {
             foreach (List<EffectBase> effectList in _runningEffects.Values)
@@ -303,10 +310,12 @@ namespace ActionBuilder.Runtime
 
             return false;
         }
+        
+#endregion
 
 
 
-#region Add / Remove Action
+#region Add / Remove Action Or Effect
 
         public void RegisterActionToRunningQueue(ActionBase action)
         {
@@ -319,12 +328,8 @@ namespace ActionBuilder.Runtime
         {
             _actionQueues.Item2.Enqueue(action);
         }
-
-#endregion
-
-
-
-#region Add / Remove Effect
+        
+        
 
         public void RegisterEffectToRunningQueue(EffectBase effect)
         {
@@ -336,6 +341,7 @@ namespace ActionBuilder.Runtime
             _effectQueues.Item1.Enqueue(effect);
         }
 
+        
 
         public void UnregisterEffectFromRunningQueue(EffectBase effect)
         {

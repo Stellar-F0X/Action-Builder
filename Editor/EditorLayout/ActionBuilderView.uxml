@@ -33,7 +33,7 @@
                     <ui:VisualElement name="line" class="line" />
                     <ui:ListView name="effect-list" allow-remove="false" allow-add="false" selection-type="None" show-bound-collection-size="false" virtualization-method="DynamicHeight" item-template="project://database/Assets/Action-Builder/Editor/EditorLayout/EffectHandlePanel.uxml?fileID=9197481963319205126&amp;guid=b5a9493c574348647a11e484ba4f81ba&amp;type=3#EffectHandlePanel" show-foldout-header="false" fixed-item-height="100" header-title=" " style="min-height: auto; flex-grow: 0; flex-shrink: 1; max-height: 4000px;" />
                 </ui:VisualElement>
-                <ui:Button text="Add Handle" name="add-effect-button" style="align-self: center; flex-shrink: 0; width: 220px; padding-top: 5px; padding-bottom: 5px; height: 25px; min-height: initial; max-height: initial; flex-grow: 1; margin-bottom: 3px; margin-top: 7px;" />
+                <ui:Button text="Add Effect" name="add-effect-button" style="align-self: center; flex-shrink: 0; width: 220px; padding-top: 5px; padding-bottom: 5px; height: 25px; min-height: initial; max-height: initial; flex-grow: 1; margin-bottom: 3px; margin-top: 7px;" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ActionBuilder.Tool.SplitView>
