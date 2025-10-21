@@ -9,9 +9,7 @@ namespace ActionBuilder.Runtime
     {
         private readonly List<ObserveData> _observeList = new List<ObserveData>();
 
-        private readonly Queue<ObserveData> _destroyQueue = new Queue<ObserveData>();
 
-        
         private int observeCount
         {
             get { return this._observeList.Count; }
@@ -19,7 +17,7 @@ namespace ActionBuilder.Runtime
 
 
 
-        public void Register(Object subject, Func<bool> condition, Action onDisabled = null)
+        public void Register(Object subject, Func<bool> condition, Action<Object> onDisabled = null)
         {
             if (condition == null)
             {
@@ -43,7 +41,7 @@ namespace ActionBuilder.Runtime
                     continue;
                 }
 
-                this._observeList[i].onDestroy?.Invoke();
+                this._observeList[i].onDestroy?.Invoke(this._observeList[i].target);
                 this._observeList.RemoveAt(i);
             }
         }
@@ -52,46 +50,33 @@ namespace ActionBuilder.Runtime
         /// <summary> 모든 관찰을 해제하고 콜백을 호출한다 </summary>
         public void ClearAll()
         {
-            if (observeCount == 0)
-            {
-                return;
-            }
-            
-            this._observeList.ForEach(e => e.onDestroy?.Invoke());
-            this._observeList.Clear();
+            this._observeList?.Clear();
         }
 
 
         private void Update()
         {
-            for (int index = 0; index < this._observeList.Count; index++)
+            for (int index = this._observeList.Count - 1; index >= 0; index--)
             {
                 ObserveData observer = this._observeList[index];
 
                 if (observer.condition.Invoke())
                 {
-                    continue;
+                    observer.onDestroy?.Invoke(this._observeList[index].target);
+                    
+                    observer.onDestroy = null;
+                    observer.condition = null;
+                    observer.target = null;
+                    
+                    this._observeList.RemoveAt(index);
                 }
-
-                observer.onDestroy?.Invoke();
-
-                observer.onDestroy = null;
-                observer.condition = null;
-
-                _destroyQueue.Enqueue(observer);
-            }
-
-            while (_destroyQueue.TryDequeue(out ObserveData observeData))
-            {
-                this._observeList.Remove(observeData);
-                Object.DestroyImmediate(observeData.target);
             }
         }
 
 
         protected override void OnMonoDestroy()
         {
-            this._observeList.ForEach(o => o.onDestroy?.Invoke());
+            this._observeList.ForEach(o => o.onDestroy?.Invoke(o.target));
         }
     }
 
@@ -100,7 +85,7 @@ namespace ActionBuilder.Runtime
     {
         private struct ObserveData : IEquatable<ObserveData>
         {
-            public ObserveData(Object target, Func<bool> condition, Action onDestroy)
+            public ObserveData(Object target, Func<bool> condition, Action<Object> onDestroy)
             {
                 this.target = target;
                 this.condition = condition;
@@ -108,7 +93,7 @@ namespace ActionBuilder.Runtime
             }
 
             public Func<bool> condition;
-            public Action onDestroy;
+            public Action<Object> onDestroy;
             public Object target;
 
 

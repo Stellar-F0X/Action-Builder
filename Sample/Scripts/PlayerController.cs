@@ -30,7 +30,7 @@ public class PlayerController : MonoBehaviour
             {
                 KeyActionNamePair pair = triggerList[i];
                 Assert.IsTrue(actionController.HasAction(pair.useActionName));
-                actionController.Trigger(pair.useActionName);
+                actionController.TriggerAction(pair.useActionName);
             }
         }
 

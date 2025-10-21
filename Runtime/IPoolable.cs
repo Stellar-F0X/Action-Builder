@@ -2,7 +2,10 @@ namespace ActionBuilder.Runtime
 {
     public interface IPoolable
     {
-        public void ReturnToPool();
+        public bool isReadyInPool
+        {
+            get;
+        } 
         
         
         public void OnBackToPool();

@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using HideIf.Runtime;
 using UnityEngine;
-using UnityEngine.Assertions;
 using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Runtime
 {
-    public abstract class ActionBase : ScriptableObject
+    public abstract class ActionBase : ScriptableObject, IPoolable
     {
         public event Action<ActionBase> onStarted;
         public event Action<ActionBase> onEnded;
@@ -31,7 +28,7 @@ namespace ActionBuilder.Runtime
 
         [SerializeReference, HideInInspector]
         protected List<EffectBase> _effectTemplates;
-        
+
 
         /// <summary> Action 동작 경과 시간. </summary>
         private float _elapsedTime;
@@ -44,7 +41,7 @@ namespace ActionBuilder.Runtime
         // <summary> 현재 액션이 트리거 된 후, 업데이트된 횟수. </summary>
         private int _tickedCount;
 
-        
+
         // <summary> 현재 액션이 생성시킨 이펙트 개수. </summary>
         private int _createdEffectCount;
 
@@ -80,6 +77,15 @@ namespace ActionBuilder.Runtime
             get;
             set;
         }
+        public Transform transform
+        {
+            get { return this.controller.transform; }
+        }
+
+        public GameObject gameObject
+        {
+            get { return this.controller.gameObject; }
+        }
 
 
         public List<GameObject> targets
@@ -89,63 +95,60 @@ namespace ActionBuilder.Runtime
         }
 
 
-        public Transform transform
-        {
-            get { return this.controller.transform; }
-        }
-
-
-        public GameObject gameObject
-        {
-            get { return this.controller.gameObject; }
-        }
-
-
         public Sprite icon
         {
             get { return _identifyData.icon; }
         }
 
-
         public string actionName
         {
             get { return _identifyData.name; }
-            
+
             private set { _identifyData.name = value; }
         }
-
-
+        
         public string description
         {
             get { return _identifyData.description; }
         }
-
 
         public int hash
         {
             get { return _identifyData.hash; }
         }
 
-
         public float duration
         {
             get { return durationData.duration; }
         }
-
 
         public string tag
         {
             get { return _identifyData.tag; }
         }
 
+        public bool isReadyInPool
+        {
+            get { return this.activeEffectCount == 0; }
+        }
+
+#endregion
+
+
+#region Internal Properties
 
         internal List<EffectBase> internalEffectSO
         {
             get { return _effectTemplates; }
         }
 
-#endregion
+        internal int activeEffectCount
+        {
+            get;
+            set;
+        }
 
+#endregion
 
 
         internal void OnCreate()
@@ -168,7 +171,7 @@ namespace ActionBuilder.Runtime
             this.controller = actionOwner;
             this.name = name.Replace("(Clone)", "");
             this.actionName = name;
-            
+
             this.OnInitialized();
         }
 
@@ -188,8 +191,7 @@ namespace ActionBuilder.Runtime
             {
                 return false;
             }
-            
-            
+
             this._elapsedTime = 0f;
             this._currentState = ActionState.Playing;
 
@@ -207,7 +209,7 @@ namespace ActionBuilder.Runtime
             }
 
             this._currentState = ActionState.Paused;
-            
+
             this.OnPause();
             this.onPaused?.Invoke(this);
             this.controller.GetRunningEffects(hash)?.ForEach(e => e.OnActionPause());
@@ -223,7 +225,7 @@ namespace ActionBuilder.Runtime
             }
 
             this._currentState = ActionState.Playing;
-            
+
             this.OnResume();
             this.onResumed?.Invoke(this);
             this.controller.GetRunningEffects(hash)?.ForEach(e => e.OnActionResume());
@@ -231,7 +233,7 @@ namespace ActionBuilder.Runtime
 
 
 
-        public virtual void Cancel()
+        public virtual void Cancel(bool withEffects = true)
         {
             if (isActive == false)
             {
@@ -242,7 +244,14 @@ namespace ActionBuilder.Runtime
 
             this.OnCancel();
             this.onCancelled?.Invoke(this);
-            this.controller.GetRunningEffects(hash)?.ForEach(e => e.OnActionCancel());
+
+            List<EffectBase> runningEffects = this.controller.GetRunningEffects(hash);
+            runningEffects?.ForEach(e => e.OnActionCancel());
+
+            if (withEffects)
+            {
+                runningEffects?.ForEach(e => e.Cancel());
+            }
         }
 
 
@@ -290,21 +299,19 @@ namespace ActionBuilder.Runtime
             {
                 return;
             }
-            
+
             //effect duration이 0이라도 한 번은 재생시켜야되므로 한 번은 적용 후, 딜레이 + 재생시간이 duration보다 짧으면 종료.
-            if (effect.currentApplyCount > 0 && (effect.executionData.delay + effect.duration) < _elapsedTime)
+            if (effect.currentApplyCount == 0 || (effect.executionData.delay + effect.duration) > _elapsedTime)
             {
-                return;
+                EffectBase clonedEffect = Object.Instantiate(effect);
+
+                clonedEffect.name = clonedEffect.name.Replace("(Clone)", "");
+                clonedEffect.effectName = clonedEffect.name;
+                clonedEffect.action = this;
+
+                _createdEffectCount++;
+                controller.RegisterEffectToRunningQueue(clonedEffect);
             }
-
-            EffectBase clonedEffect = Object.Instantiate(effect);
-
-            clonedEffect.name = clonedEffect.name.Replace("(Clone)", "");
-            clonedEffect.effectName = clonedEffect.name;
-            clonedEffect.action = this;
-
-            _createdEffectCount++;
-            controller.AddEffectToRunningQueue(clonedEffect);
         }
 
 
@@ -366,5 +373,11 @@ namespace ActionBuilder.Runtime
 
 
         protected virtual void OnInitialized() { }
+
+
+        public virtual void OnBackToPool() { }
+
+
+        public virtual void OnGetFromPool() { }
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Runtime
 {
-    public class PlayParticleEffect : EffectBase
+    public class CreateParticleEffect : EffectBase
     {
         public event Action<ParticleSystem> onParticleStarted;
         public event Action<ParticleSystem> onParticleEnded;
@@ -18,11 +17,12 @@ namespace ActionBuilder.Runtime
 
         [SerializeReference, SubclassSelector]
         public TargetResolver targetResolver = new DefaultTargetResolver();
+
         public TransformOffset particleOffset = new TransformOffset()
         {
-            positionOffset = Vector3.zero,
-            rotationOffset = Vector3.zero,
-            size = Vector3.one
+                positionOffset = Vector3.zero,
+                rotationOffset = Vector3.zero,
+                size = Vector3.one
         };
 
         private Transform _trackingTransform;
@@ -78,7 +78,7 @@ namespace ActionBuilder.Runtime
         protected override void OnRelease()
         {
             ParticleSystem activeParticle = _particles.Last();
-            
+
             if (activeParticle.isStopped == false)
             {
                 activeParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -91,7 +91,7 @@ namespace ActionBuilder.Runtime
 
         private void UpdateParticleTransform()
         {
-            if (targetResolver is null)
+            if (targetResolver is null || _particles.Count == 0)
             {
                 return;
             }
@@ -105,22 +105,12 @@ namespace ActionBuilder.Runtime
 
         private void OnDestroy()
         {
-            Assert.IsNotNull(_particles, $"{typeof(PlayParticleEffect)}: particles is null");
-            
-            this.Release();
-            
-            for (int index = 0; index < _particles.Count; ++index)
-            {
-                if (_particles[index] == null)
-                {
-                    continue;
-                }
+            Assert.IsNotNull(_particles, $"{typeof(CreateParticleEffect)}: particles is null");
 
-                Object.Destroy(_particles[index].gameObject);
-                _particles[index] = null;
+            foreach (ParticleSystem particle in _particles.Where(p => p != null))
+            {
+                Singleton<MonoObserver>.Instance.Register(particle.gameObject, () => !particle.IsAlive(false), Object.Destroy);
             }
-            
-            _particles = null;
         }
     }
 }

@@ -4,22 +4,28 @@ using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Runtime
 {
-    [DefaultExecutionOrder(-10)]
+    [DefaultExecutionOrder(-50), Serializable]
     public class Singleton<TSingleton> where TSingleton : Singleton<TSingleton>.Singletonable
     {
         public class Singletonable : MonoBehaviour
         {
+            protected TSingleton _instance
+            {
+                get { return Instance; }
+            }
+            
+            
             protected void Awake()
             {
-                if (_instance != null && _instance != this)
+                if (_singleInstance != null && _singleInstance != this)
                 {
                     Object.Destroy(this);
                     return;
                 }
 
-                _instance = this as TSingleton;
+                _singleInstance = this as TSingleton;
                 IsInitialized = true;
-                OnInitialized?.Invoke(_instance);
+                OnInitialized?.Invoke(_singleInstance);
                 Object.DontDestroyOnLoad(this.gameObject);
                 this.OnMonoAwake();
             }
@@ -27,14 +33,15 @@ namespace ActionBuilder.Runtime
             protected void OnDestroy()
             {
                 this.OnMonoDestroy();
-                OnDestroyed?.Invoke(_instance);
-                Object.DestroyImmediate(_instance);
+                OnDestroyed?.Invoke(_singleInstance);
+                
+                _singleInstance = null;
             }
         
             protected void OnApplicationQuit()
             {
                 this.OnMonoDestroy();
-                OnDestroyed?.Invoke(_instance);
+                OnDestroyed?.Invoke(_singleInstance);
             }
             
             
@@ -52,12 +59,13 @@ namespace ActionBuilder.Runtime
 
         public static event Action<TSingleton> OnDestroyed;
         
-        private static TSingleton _instance;
+        
+        private static TSingleton _singleInstance;
         
         
         public static TSingleton Instance
         {
-            get { return _instance = _instance != null ? _instance : MakeOrFindObject(); }
+            get { return _singleInstance = _singleInstance != null ? _singleInstance : MakeOrFindObject(); }
         }
 
 
@@ -71,15 +79,15 @@ namespace ActionBuilder.Runtime
 
         private static TSingleton MakeOrFindObject()
         {
-            _instance = Object.FindAnyObjectByType<TSingleton>();
+            _singleInstance = Object.FindAnyObjectByType<TSingleton>();
 
-            if (_instance == null)
+            if (_singleInstance == null)
             {
                 GameObject newGameObject = new GameObject(typeof(TSingleton).Name);
-                _instance = newGameObject.AddComponent<TSingleton>();
+                _singleInstance = newGameObject.AddComponent<TSingleton>();
             }
 
-            return _instance;
+            return _singleInstance;
         }
     }
 }

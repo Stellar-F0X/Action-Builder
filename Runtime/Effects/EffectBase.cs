@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using HideIf.Runtime;
 using UnityEngine;
 
 namespace ActionBuilder.Runtime
@@ -19,8 +21,12 @@ namespace ActionBuilder.Runtime
 
         [HideInInspector]
         public bool enable = true;
+
         public string description;
-        public bool autoRelease;
+        public bool autoRelease = true;
+
+
+        [HideIf(nameof(autoRelease), false)]
         public EffectEndPolicy endPolicy;
 
 
@@ -37,17 +43,24 @@ namespace ActionBuilder.Runtime
         internal bool isExpanded = true;
 #endif
 
+
         private bool _released;
+
 
         private int _currentApplyCount;
 
+
         private float _elapsedTime;
+
 
         private float _lastApplyTime;
 
 
         [SerializeReference, HideInInspector]
         private ActionBase _action;
+
+
+        private Coroutine _autoApplyCoroutine;
 
 
 
@@ -63,12 +76,12 @@ namespace ActionBuilder.Runtime
 
         public Transform transform
         {
-            get { return _action.controller.transform; }
+            get { return _action?.controller?.transform; }
         }
 
         public GameObject gameObject
         {
-            get { return _action.controller.gameObject; }
+            get { return _action?.controller?.gameObject; }
         }
 
         public bool isApplyComplete
@@ -105,7 +118,7 @@ namespace ActionBuilder.Runtime
         {
             get { return executionData.applyInterval; }
         }
-        
+
         public virtual bool isOverDuration
         {
             get { return _elapsedTime > duration; }
@@ -127,18 +140,31 @@ namespace ActionBuilder.Runtime
 
         public void Reset()
         {
+            // 실행 중인 코루틴 정리
+            if (_autoApplyCoroutine != null && _action?.controller != null)
+            {
+                _action.controller.StopCoroutine(_autoApplyCoroutine);
+            }
+            
             _released = false;
             _elapsedTime = 0;
             _lastApplyTime = 0;
             _currentApplyCount = 0;
+            _autoApplyCoroutine = null;
 
             this.OnReset();
         }
 
 
 
-        public virtual void Apply()
+        public virtual void ManualApply()
         {
+            if (applyPolicy == ApplyPolicy.Auto)
+            {
+                Debug.LogWarning($"[{this.name}] ManualApply is not allowed when applyPolicy is Auto");
+                return;
+            }
+            
             if (this.enable == false)
             {
                 return;
@@ -165,23 +191,47 @@ namespace ActionBuilder.Runtime
 
 
 
+        protected virtual IEnumerator AutoApply()
+        {
+            bool isValidInterval = !(float.IsNaN(applyInterval) || Mathf.Approximately(applyInterval, 0f));
+
+            for (int index = 0; index < targetApplyCount && _released == false; index++)
+            {
+                _lastApplyTime = _elapsedTime;
+                _currentApplyCount++;
+
+                this.onBeforeApply?.Invoke(this);
+                this.OnApply();
+                this.onAfterApply?.Invoke(this);
+
+                if (isValidInterval)
+                {
+                    yield return new WaitForSeconds(applyInterval);
+                }
+            }
+
+            _autoApplyCoroutine = null;
+        }
+
+
+
         public void Release(bool forceRelease = false)
         {
-            if (this.enable == false)
-            {
-                return;
-            }
-            
-            if (forceRelease == false && (_released || isOverDuration == false))
+            //이미 릴리즈 된 상태라면 굳이 다시 릴리즈를 할 필요가 없다.
+            if (_released)
             {
                 return;
             }
 
-            _released = true;
+            //강제로 수행하거나, 활성화되어 있고, 재생 시간 초과라는 종료 조건이 성립해야 됨.
+            if (forceRelease || (this.enable && isOverDuration))
+            {
+                _released = true;
 
-            this.onBeforeRelease?.Invoke(this);
-            this.OnRelease();
-            this.onAfterRelease?.Invoke(this);
+                this.onBeforeRelease?.Invoke(this);
+                this.OnRelease();
+                this.onAfterRelease?.Invoke(this);
+            }
         }
 
 
@@ -195,9 +245,9 @@ namespace ActionBuilder.Runtime
 
             _elapsedTime += Time.deltaTime;
 
-            if (applyPolicy == ApplyPolicy.Auto)
+            if (applyPolicy == ApplyPolicy.Auto && _autoApplyCoroutine == null)
             {
-                this.Apply();
+                _autoApplyCoroutine = action.controller.StartCoroutine(this.AutoApply());
             }
 
             this.OnUpdate(Time.deltaTime);
@@ -205,19 +255,38 @@ namespace ActionBuilder.Runtime
 
 
 
-        public void OnValidate()
+        private void OnValidate()
         {
             this.OnValidateEffect();
         }
 
-        
-        
+
+
+        public virtual void Cancel()
+        {
+            if (_autoApplyCoroutine != null && _action?.controller != null)
+            {
+                _action.controller.StopCoroutine(_autoApplyCoroutine);
+                _autoApplyCoroutine = null;
+            }
+            
+            if (this.autoRelease)
+            {
+                this.Release(forceRelease: true);
+            }
+
+            this.OnCanceled();
+            this.action?.controller?.UnregisterEffectFromRunningQueue(this);
+        }
+
+
+
 
 #region Action Event Callbacks
-        
-        public virtual void OnActionCancel() {  }
 
-        
+        public virtual void OnActionCancel() { }
+
+
         public virtual void OnActionPause() { }
 
 
@@ -228,8 +297,9 @@ namespace ActionBuilder.Runtime
 
 #endregion
 
-        
-        
+
+        protected virtual void OnCanceled() { }
+
 
         protected virtual void OnValidateEffect() { }
 

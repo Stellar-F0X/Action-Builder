@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Codice.CM.Common;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -11,27 +10,28 @@ namespace ActionBuilder.Runtime
     public class ActionController : MonoBehaviour
     {
         [SerializeField]
-        private bool _debug;
-        
-        [SerializeField]
         private List<ActionBase> _actions = new List<ActionBase>();
-        
-        
-        
+
+
+
         private readonly ActionDictionary _registeredActionPool = new ActionDictionary();
-        
+
         private readonly List<ActionBase> _runningActions = new List<ActionBase>();
 
         private readonly Dictionary<int, List<EffectBase>> _runningEffects = new Dictionary<int, List<EffectBase>>();
-        
-        private readonly Queue<ScriptableObject> _destroyQueue = new Queue<ScriptableObject>();
-        
-        
+
+
+
 
         private readonly ValueTuple<Queue<EffectBase>, Queue<EffectBase>> _effectQueues = new(new Queue<EffectBase>(), new Queue<EffectBase>());
 
         private readonly ValueTuple<Queue<ActionBase>, Queue<ActionBase>> _actionQueues = new(new Queue<ActionBase>(), new Queue<ActionBase>());
 
+
+
+        private readonly List<IPoolable> _objectPool = new List<IPoolable>();
+
+        private readonly Queue<ScriptableObject> _disableQueue = new Queue<ScriptableObject>();
 
 
 
@@ -40,8 +40,8 @@ namespace ActionBuilder.Runtime
             for (int index = 0; index < _actions.Count; ++index)
             {
                 ActionBase clone = Object.Instantiate(_actions[index]);
-                clone.Initialize(this); 
-                _registeredActionPool.Add(clone); 
+                clone.Initialize(this);
+                _registeredActionPool.Add(clone);
             }
         }
 
@@ -68,18 +68,18 @@ namespace ActionBuilder.Runtime
             return _runningActions;
         }
 
-        
-        
+
+
         public bool HasAction(string actionName, bool searchInRunningActions = false)
         {
             if (_registeredActionPool.TryGetValue(actionName, out ActionBase targetAction) == false)
             {
                 return false;
             }
-            
+
             if (searchInRunningActions)
             {
-                return _runningActions.Find(a => a.hash == targetAction.hash);
+                return _runningActions.Any(a => a.hash == targetAction.hash);
             }
             else
             {
@@ -95,55 +95,73 @@ namespace ActionBuilder.Runtime
             {
                 return false;
             }
-            
+
             if (searchInRunningActions)
             {
                 int targetHash = action.hash;
 
-                return _runningActions.Find(a => a.hash == targetHash);
+                return _runningActions.Any(a => a.hash == targetHash);
             }
             else
             {
                 return action != null;
             }
         }
-        
-        
 
-        public ActionBase Trigger(string actionName)
+
+
+        public ActionBase TriggerAction(string actionName)
         {
-            if (this.HasAction(actionName) == false)
+            if (this.HasAction(actionName, out ActionBase original, false) == false)
             {
                 Debug.LogWarning($"{actionName}이 존재하지 않습니다.");
                 return null;
             }
 
-            ActionBase action = _registeredActionPool[actionName];
-            this.Trigger(action);
-            return action;
+            ActionBase action = _objectPool.Where(a => a.isReadyInPool)
+                                           .OfType<ActionBase>()
+                                           .FirstOrDefault(act => act.hash == original.hash);
+
+            if (action != null)
+            {
+                action.OnGetFromPool();
+                this.TriggerAction(action);
+                return action;
+            }
+
+            if (original != null)
+            {
+                action = Object.Instantiate(original);
+                action.Initialize(this);
+                this.TriggerAction(action);
+                return action;
+            }
+
+            Debug.LogWarning($"{actionName}이 존재하지 않습니다.");
+            return null;
         }
 
 
 
-        public void Trigger(ActionBase action)
+        public void TriggerAction(ActionBase action)
         {
             if (action.Trigger())
             {
-                this.AddActionToRunningQueue(action);
+                this.RegisterActionToRunningQueue(action);
             }
             else
             {
-                Debug.LogWarning($"{action.name}을 시작할 수 없습니다."); 
+                Debug.LogWarning($"{action.name}을 시작할 수 없습니다.");
             }
         }
 
 
 
-        public void Cancel(string actionName)
+        public void PauseAction(string actionName)
         {
             if (this.HasAction(actionName, out ActionBase action, true))
             {
-                action.Cancel();
+                action.Pause();
             }
             else
             {
@@ -153,7 +171,61 @@ namespace ActionBuilder.Runtime
 
 
 
-        public void ManualRelease(string actionName, string effectName)
+        public void ResumeAction(string actionName)
+        {
+            if (this.HasAction(actionName, out ActionBase action, true))
+            {
+                action.Resume();
+            }
+            else
+            {
+                Debug.LogError($"동작 중인 액션 {actionName}를 찾을 수 없습니다.");
+            }
+        }
+
+
+
+        public void CancelAction(string actionName, bool withEffects = true)
+        {
+            if (this.HasAction(actionName, out ActionBase action, true))
+            {
+                action.Cancel(withEffects);
+            }
+            else
+            {
+                Debug.LogError($"동작 중인 액션 {actionName}를 찾을 수 없습니다.");
+            }
+        }
+
+
+
+        public void StopAllEffects()
+        {
+            foreach (List<EffectBase> effectList in _runningEffects.Values)
+            {
+                effectList.ForEach(e => e.Cancel());
+            }
+        }
+
+
+
+        public void CancelEffectsByActionType(string actionName)
+        {
+            if (this.HasAction(actionName, out ActionBase action, true) == false)
+            {
+                Debug.LogError($"동작 중인 액션 {actionName}를 찾을 수 없습니다.");
+                return;
+            }
+
+            if (_runningEffects.TryGetValue(action.hash, out List<EffectBase> list))
+            {
+                list.ForEach(e => e.Cancel());
+            }
+        }
+
+
+
+        public void ManualReleaseEffects(string actionName, string effectName)
         {
             if (string.IsNullOrEmpty(actionName) || string.IsNullOrEmpty(effectName))
             {
@@ -167,7 +239,7 @@ namespace ActionBuilder.Runtime
                 return;
             }
 
-            foreach (EffectBase effect in this._runningEffects[action.hash])
+            foreach (EffectBase effect in this._runningEffects.GetValueOrDefault(action.hash))
             {
                 if (effect.name == effectName)
                 {
@@ -178,21 +250,21 @@ namespace ActionBuilder.Runtime
 
 
 
-        public EffectBase[] ManualApply(string actionName, string effectName)
+        public EffectBase[] ManualApplyEffects(string actionName, string effectName)
         {
             if (string.IsNullOrEmpty(actionName) || string.IsNullOrEmpty(effectName))
             {
                 Debug.LogError("Action Name 또는 Effect Name이 비었습니다.");
                 return Array.Empty<EffectBase>();
             }
-            
+
             if (this.HasAction(actionName, out ActionBase action, true))
             {
                 EffectBase[] effects = this._runningEffects[action.hash].Where(effect => effect.name == effectName).ToArray();
-                
+
                 foreach (EffectBase effect in effects)
                 {
-                    effect.Apply();
+                    effect.ManualApply();
                 }
 
                 return effects;
@@ -204,23 +276,23 @@ namespace ActionBuilder.Runtime
 
 
 
-        public bool ManualApply(EffectBase effect)
+        public bool ManualApplyEffects(EffectBase effect)
         {
             if (_runningActions.Contains(effect.action) == false)
             {
                 return false;
             }
-            
+
             if (_runningEffects.TryGetValue(effect.action.hash, out List<EffectBase> list))
             {
                 int idx = list.IndexOf(effect);
 
-                if (idx <= 0)
+                if (idx < 0)
                 {
                     return false;
                 }
 
-                list[idx].Apply();
+                list[idx].ManualApply();
                 return true;
             }
 
@@ -228,17 +300,17 @@ namespace ActionBuilder.Runtime
         }
 
 
-        
+
 #region Add / Remove Action
 
-        public void AddActionToRunningQueue(ActionBase action)
+        public void RegisterActionToRunningQueue(ActionBase action)
         {
             _actionQueues.Item1.Enqueue(action);
         }
 
 
 
-        public void RemoveActionFromRunningQueue(ActionBase action)
+        public void UnregisterActionFromRunningQueue(ActionBase action)
         {
             _actionQueues.Item2.Enqueue(action);
         }
@@ -249,36 +321,33 @@ namespace ActionBuilder.Runtime
 
 #region Add / Remove Effect
 
-        public EffectBase AddEffectToRunningQueue(EffectBase effect)
+        public void RegisterEffectToRunningQueue(EffectBase effect)
         {
-            _effectQueues.Item1.Enqueue(effect);
-
-            if (_runningEffects.ContainsKey(effect.action.hash))
+            if (_runningEffects.ContainsKey(effect.action.hash) == false)
             {
-                return effect;
+                _runningEffects.Add(effect.action.hash, new List<EffectBase>());
             }
 
-            _runningEffects.Add(effect.action.hash, new List<EffectBase>());
-            return effect;
+            _effectQueues.Item1.Enqueue(effect);
         }
 
 
-        public void RemoveEffectFromRunningQueue(EffectBase effect)
+        public void UnregisterEffectFromRunningQueue(EffectBase effect)
         {
-            _effectQueues.Item2.Enqueue(effect);
-
             if (_runningEffects.ContainsKey(effect.action.hash))
             {
-                return;
+                _effectQueues.Item2.Enqueue(effect);
             }
-
-            Debug.LogError($"Running Queue에 Effect (:{effect.name})이 등록되어있지 않습니다.");
+            else
+            {
+                Debug.LogError($"Running Queue에 Effect (:{effect.name})이 등록되어있지 않습니다.");
+            }
         }
 
 #endregion
 
 
-        
+
 #region Update Action
 
         private void UpdateActions()
@@ -297,7 +366,7 @@ namespace ActionBuilder.Runtime
 
                 if (action.isActive == false)
                 {
-                    return;
+                    continue;
                 }
 
                 if (action.CheckFinish() && _runningEffects.TryGetValue(action.hash, out var list))
@@ -315,6 +384,7 @@ namespace ActionBuilder.Runtime
             {
                 ActionBase action = _actionQueues.Item2.Dequeue();
                 _runningActions.Remove(action);
+                _disableQueue.Enqueue(action);
                 action.Reset();
             }
         }
@@ -345,10 +415,10 @@ namespace ActionBuilder.Runtime
             {
                 effect.Release();
             }
-            
+
             effect.OnActionEnd();
-            
-            this.RemoveEffectFromRunningQueue(effect);
+
+            this.UnregisterEffectFromRunningQueue(effect);
         }
 
 #endregion
@@ -364,6 +434,7 @@ namespace ActionBuilder.Runtime
             {
                 EffectBase effect = _effectQueues.Item1.Dequeue();
                 _runningEffects[effect.action.hash].Add(effect);
+                effect.action.activeEffectCount++;
             }
 
 
@@ -379,7 +450,8 @@ namespace ActionBuilder.Runtime
             {
                 EffectBase effect = _effectQueues.Item2.Dequeue();
                 _runningEffects[effect.action.hash].Remove(effect);
-                _destroyQueue.Enqueue(effect);
+                effect.action.activeEffectCount--;
+                _disableQueue.Enqueue(effect);
             }
         }
 
@@ -392,15 +464,10 @@ namespace ActionBuilder.Runtime
             for (int index = 0; index < effectLength; ++index)
             {
                 EffectBase effect = effects[index];
-                
+
                 if (effect.isReleased)
                 {
                     continue;
-                }
-
-                if (effect.enable)
-                {
-                    effect.Update();
                 }
 
                 if (effect.isOverDuration)
@@ -409,8 +476,14 @@ namespace ActionBuilder.Runtime
                     {
                         effect.Release();
                     }
-                    
-                    this.RemoveEffectFromRunningQueue(effect);
+
+                    this.UnregisterEffectFromRunningQueue(effect);
+                    continue;
+                }
+
+                if (effect.enable)
+                {
+                    effect.Update();
                 }
             }
         }
@@ -418,17 +491,25 @@ namespace ActionBuilder.Runtime
 #endregion
 
 
-        
-#region Clean Up Objects
-        
-        
+
+#region Destory Objects
+
         private void DestroyObjects()
         {
-            while (_destroyQueue.TryDequeue(out ScriptableObject destroyTarget))
+            while (_disableQueue.Count > 0)
             {
+                ScriptableObject destroyTarget = _disableQueue.Dequeue();
+
+                if (destroyTarget == null)
+                {
+                    Debug.LogWarning("이미 파괴된 오브젝트가 들어와 있습니다.");
+                    continue;
+                }
+                
                 if (destroyTarget is IPoolable poolable)
                 {
-                    poolable.ReturnToPool();
+                    poolable.OnBackToPool();
+                    _objectPool.Add(poolable);
                 }
                 else
                 {
@@ -438,9 +519,22 @@ namespace ActionBuilder.Runtime
         }
 
 
+
         private void OnDestroy()
         {
-            
+            foreach (ActionBase action in _runningActions)
+            {
+                action.Cancel(withEffects: true);
+            }
+
+            _runningActions.Clear();
+            _registeredActionPool.Clear();
+            _runningEffects.Clear();
+            _disableQueue.Clear();
+            _effectQueues.Item1.Clear();
+            _effectQueues.Item2.Clear();
+            _actionQueues.Item1.Clear();
+            _actionQueues.Item2.Clear();
         }
 
 #endregion

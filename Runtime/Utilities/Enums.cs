@@ -3,16 +3,6 @@ using UnityEngine;
 
 namespace ActionBuilder.Runtime
 {
-    public enum AnimationEventTiming
-    {
-        Start,
-        Cancel,
-        Pause,
-        End,
-        InTime
-    };
-
-
     public enum ActionDuration
     {
         Instant,
