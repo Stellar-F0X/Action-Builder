@@ -1,5 +1,5 @@
 ﻿using System;
-	
+
 /// <summary>
 /// An attribute that overrides the name of the type displayed in the SubclassSelector popup.
 /// </summary>

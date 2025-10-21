@@ -4,7 +4,6 @@ using ActionBuilder.Runtime;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-
 [Serializable]
 public struct KeyActionNamePair
 {
