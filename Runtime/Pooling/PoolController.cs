@@ -7,17 +7,27 @@ namespace ActionBuilder.Runtime
 {
     public class PoolController
     {
-        private readonly List<IPoolable> _objectPool = new List<IPoolable>();
+        private readonly List<IPoolable> _objectList = new List<IPoolable>();
 
         private readonly Queue<ExecutableBase> _disableQueue = new Queue<ExecutableBase>();
+        
+
+        public IReadOnlyList<IPoolable> list
+        {
+            get { return _objectList; }
+        }
 
 
 
         public T GetPooledObject<T>(int hash) where T : ExecutableBase, IPoolable
         {
-            return _objectPool.Where(obj => obj.isReadyInPool)
-                              .OfType<T>()
-                              .FirstOrDefault(obj => obj.hash == hash);
+            T result = _objectList.Where(obj => obj.isReadyInPool)
+                       .OfType<T>()
+                       .FirstOrDefault(obj => obj.hash == hash);
+
+            _objectList.Remove(result);
+            return result;
+
         }
 
 
@@ -30,7 +40,7 @@ namespace ActionBuilder.Runtime
         
         public void ClearPool()
         {
-            _objectPool.Clear();
+            _objectList.Clear();
             _disableQueue.Clear();
         }
 
@@ -48,7 +58,7 @@ namespace ActionBuilder.Runtime
                 }
 
                 poolable.OnBackToPool();
-                _objectPool.Add(poolable);
+                _objectList.Add(poolable);
             }
         }
     }

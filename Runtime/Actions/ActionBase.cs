@@ -76,7 +76,7 @@ namespace ActionBuilder.Runtime
 
         public bool isReadyInPool
         {
-            get { return this.activeEffectCount == 0; }
+            get { return isOnCooldown == false; }
         }
 
 #endregion

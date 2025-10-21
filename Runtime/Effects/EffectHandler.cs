@@ -7,27 +7,28 @@ namespace ActionBuilder.Runtime
 {
     public class EffectHandler
     {
-        public EffectHandler(ActionController controller, Dictionary<int, List<EffectBase>> runningEffects, ValueTuple<Queue<EffectBase>, Queue<EffectBase>> queues)
+        public EffectHandler(ActionController controller, Dictionary<int, List<EffectBase>> runningEffects, ValueTuple<Queue<EffectBase>, Queue<EffectBase>> queues
+        )
         {
+            _effectQueues = queues;
             _controller = controller;
             _runningEffects = runningEffects;
-            _effectQueues = queues;
         }
-        
+
         private readonly ActionController _controller;
-        
+
         private readonly Dictionary<int, List<EffectBase>> _runningEffects;
-        
+
         private readonly ValueTuple<Queue<EffectBase>, Queue<EffectBase>> _effectQueues;
 
-        
+
 
         public List<EffectBase> GetRunningEffects(int actionHash)
         {
             return _runningEffects.GetValueOrDefault(actionHash);
         }
 
-        
+
         public void StopAllEffects()
         {
             foreach (List<EffectBase> effectList in _runningEffects.Values)
@@ -36,7 +37,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
-        
+
         public void CancelEffectsByActionType(string actionName, ActionHandler actionHandler)
         {
             if (actionHandler.HasAction(actionName, out ActionBase action, true) == false)
@@ -50,7 +51,7 @@ namespace ActionBuilder.Runtime
                 list.ForEach(e => e.Cancel());
             }
         }
-        
+
 
         public void ManualReleaseEffects(string actionName, string effectName, ActionHandler actionHandler)
         {
@@ -74,7 +75,7 @@ namespace ActionBuilder.Runtime
                 }
             }
         }
-        
+
 
         public EffectBase[] ManualApplyEffects(string actionName, string effectName, ActionHandler actionHandler)
         {
@@ -86,9 +87,7 @@ namespace ActionBuilder.Runtime
 
             if (actionHandler.HasAction(actionName, out ActionBase action, true))
             {
-                EffectBase[] effects = _runningEffects[action.hash]
-                    .Where(effect => effect.name == effectName)
-                    .ToArray();
+                EffectBase[] effects = _runningEffects[action.hash].Where(effect => effect.name == effectName) .ToArray();
 
                 foreach (EffectBase effect in effects)
                 {
@@ -102,26 +101,27 @@ namespace ActionBuilder.Runtime
             return Array.Empty<EffectBase>();
         }
 
-        
+
         public bool ManualApplyEffects(EffectBase effect)
         {
-            if (_runningEffects.TryGetValue(effect.action.hash, out List<EffectBase> list))
+            if (_runningEffects.TryGetValue(effect.action.hash, out List<EffectBase> list) == false)
             {
-                int idx = list.IndexOf(effect);
-
-                if (idx < 0)
-                {
-                    return false;
-                }
-
-                list[idx].ManualApply();
-                return true;
+                return false;
             }
 
-            return false;
+            int idx = list.IndexOf(effect);
+
+            if (idx < 0)
+            {
+                return false;
+            }
+
+            list[idx].ManualApply();
+            return true;
+
         }
 
-        
+
         public void RegisterEffectToRunningQueue(EffectBase effect)
         {
             if (_runningEffects.ContainsKey(effect.action.hash) == false)
@@ -132,7 +132,7 @@ namespace ActionBuilder.Runtime
             _effectQueues.Item1.Enqueue(effect);
         }
 
-        
+
         public void UnregisterEffectFromRunningQueue(EffectBase effect)
         {
             if (_runningEffects.ContainsKey(effect.action.hash))
@@ -145,7 +145,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
-        
+
         public void HandleActionEnd(ActionBase action)
         {
             if (_runningEffects.TryGetValue(action.hash, out var list))
@@ -154,7 +154,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
-        
+
         public void UpdateEffects()
         {
             // Effect 등록 처리
@@ -181,7 +181,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
-        
+
         private void UpdateEffectsList(List<EffectBase> effects)
         {
             int effectLength = effects.Count;
@@ -213,7 +213,7 @@ namespace ActionBuilder.Runtime
             }
         }
 
-        
+
         private void ManageEffectsOnActionEnd(EffectBase effect)
         {
             bool finishEffect = effect.endPolicy == EffectEndPolicy.StopOnActionEnd;

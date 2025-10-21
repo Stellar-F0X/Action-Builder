@@ -10,23 +10,23 @@ namespace ActionBuilder.Runtime
     {
         public ActionHandler(ActionController controller, ActionDictionary templates, List<ActionBase> runningActions, ValueTuple<Queue<ActionBase>, Queue<ActionBase>> queues)
         {
+            _actionQueues = queues;
             _controller = controller;
             _actionTemplates = templates;
             _runningActions = runningActions;
-            _actionQueues = queues;
         }
-        
-        
+
+
         private readonly ActionController _controller;
-        
+
         private readonly ActionDictionary _actionTemplates;
-        
+
         private readonly List<ActionBase> _runningActions;
-        
+
         private readonly ValueTuple<Queue<ActionBase>, Queue<ActionBase>> _actionQueues;
 
 
-        
+
         public bool HasAction(string actionName, bool searchInRunningActions = false)
         {
             if (_actionTemplates.TryGetValue(actionName, out ActionBase targetAction) == false)
@@ -42,7 +42,7 @@ namespace ActionBuilder.Runtime
             return targetAction != null;
         }
 
-        
+
         public bool HasAction(string actionName, out ActionBase action, bool searchInRunningActions = false)
         {
             if (_actionTemplates.TryGetValue(actionName, out action) == false)
@@ -58,37 +58,42 @@ namespace ActionBuilder.Runtime
 
             return action != null;
         }
-        
+
 
         public ActionBase TriggerAction(string actionName)
         {
-            if (this.HasAction(actionName, out ActionBase original, false) == false)
+            if (this.HasAction(actionName, out ActionBase template, false) == false)
             {
                 Debug.LogWarning($"{actionName}이 존재하지 않습니다.");
                 return null;
             }
 
-            ActionBase action = _controller.GetPooledAction(original.hash);
+            ActionBase action = this.GetActionFromPoolOrCreate(template);
 
-            if (action != null)
+            //TriggerAction에선 Action의 쿨타임이 돌고 있는 중일 때, 사용하려면 무시
+            if (action.isOnCooldown)
             {
-                action.OnGetFromPool();
-                this.TriggerAction(action);
-                return action;
+                return null;
             }
 
-            if (original != null)
+            //액션의 쿨타임이 다 끝났음에도 액션의 활성화된 이펙트가 있다면 새롭게 생성. 
+            //기획상, 이펙트 Duration이 액션 Duration보다 길 수 있기 때문.
+            //이펙트가 돌고 있는 와중에 액션을 풀링하듯 동작시키면 문제가 발생하므로 그냥 새로 생성함.
+            if (action.activeEffectCount > 0)
             {
-                action = original.InstantiateSelf<ActionBase>();
+                action = template.InstantiateSelf<ActionBase>();
                 action.Initialize(_controller);
-                this.TriggerAction(action);
-                return action;
+            }
+            else //쿨타임이 다 끝난데다, 활성화 된 이펙트가 없다면 기존걸 풀링.
+            {
+                action.Reset();
+                action.OnGetFromPool();
             }
 
-            Debug.LogWarning($"{actionName}이 존재하지 않습니다.");
-            return null;
+            this.TriggerAction(action);
+            return action;
         }
-        
+
 
         public void TriggerAction(ActionBase action)
         {
@@ -101,7 +106,7 @@ namespace ActionBuilder.Runtime
                 Debug.LogWarning($"{((Object)action).name}을 시작할 수 없습니다.");
             }
         }
-        
+
 
         public void PauseAction(string actionName)
         {
@@ -114,7 +119,7 @@ namespace ActionBuilder.Runtime
                 Debug.LogError($"동작 중인 액션 {actionName}를 찾을 수 없습니다.");
             }
         }
-        
+
 
         public void ResumeAction(string actionName)
         {
@@ -127,7 +132,7 @@ namespace ActionBuilder.Runtime
                 Debug.LogError($"동작 중인 액션 {actionName}를 찾을 수 없습니다.");
             }
         }
-        
+
 
         public void CancelAction(string actionName, bool withEffects = true)
         {
@@ -140,19 +145,19 @@ namespace ActionBuilder.Runtime
                 Debug.LogError($"동작 중인 액션 {actionName}를 찾을 수 없습니다.");
             }
         }
-        
+
 
         public void RegisterActionToRunningQueue(ActionBase action)
         {
             _actionQueues.Item1.Enqueue(action);
         }
 
-        
+
         public void UnregisterActionFromRunningQueue(ActionBase action)
         {
             _actionQueues.Item2.Enqueue(action);
         }
-        
+
 
         public void UpdateActions(EffectHandler effectHandler)
         {
@@ -191,8 +196,30 @@ namespace ActionBuilder.Runtime
                 ActionBase action = _actionQueues.Item2.Dequeue();
                 _runningActions.Remove(action);
                 _controller.EnqueueForDestroy(action);
-                action.Reset();
             }
+        }
+
+
+        private ActionBase GetActionFromPoolOrCreate(ActionBase template)
+        {
+            ActionBase action = _runningActions.FirstOrDefault(a => a.hash == template.hash);
+
+            if (action != null)
+            {
+                return action;
+            }
+
+            action = _controller.pooler.list.FirstOrDefault(a => ((ExecutableBase)a).hash == template.hash) as ActionBase;
+
+            if (action != null)
+            {
+                return action;
+            }
+
+            action = template.InstantiateSelf<ActionBase>();
+            action.Initialize(_controller);
+            this.TriggerAction(action);
+            return action;
         }
     }
 }

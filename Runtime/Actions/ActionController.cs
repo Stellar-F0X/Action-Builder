@@ -7,38 +7,51 @@ namespace ActionBuilder.Runtime
     [DefaultExecutionOrder(-2)]
     public class ActionController : MonoBehaviour
     {
-        [SerializeField]
-        private List<ActionBase> _actions = new List<ActionBase>();
-
         private readonly ActionDictionary _actionTemplates = new ActionDictionary();
         private readonly List<ActionBase> _runningActions = new List<ActionBase>();
+        
         private readonly Dictionary<int, List<EffectBase>> _runningEffects = new Dictionary<int, List<EffectBase>>();
 
         private readonly ValueTuple<Queue<EffectBase>, Queue<EffectBase>> _effectQueues = new(new Queue<EffectBase>(), new Queue<EffectBase>());
         private readonly ValueTuple<Queue<ActionBase>, Queue<ActionBase>> _actionQueues = new(new Queue<ActionBase>(), new Queue<ActionBase>());
-
         
         
-        // 매니저들
-        private PoolController _poolController = new PoolController();
+        [SerializeField]
+        private List<ActionBase> _actions = new List<ActionBase>();
+        
+        private PoolController _pooler = new PoolController();
         
         private ActionHandler _actionHandler;
         
         private EffectHandler _effectHandler;
+        
+        
+        
+        
+        public PoolController pooler
+        {
+            get { return _pooler; }
+        }
+        
+        
+        public ActionHandler actionHandler
+        {
+            get { return _actionHandler; }
+        }
 
         
         
         private void Awake()
         {
-            for (int index = 0; index < _actions.Count; ++index)
+            foreach (ActionBase action in _actions)
             {
-                ActionBase clone = _actions[index].InstantiateSelf<ActionBase>();
+                ActionBase clone = action.InstantiateSelf<ActionBase>();
                 clone.Initialize(this);
                 _actionTemplates.Add(clone);
             }
 
-            _actionHandler = new ActionHandler(this, _actionTemplates, _runningActions, _actionQueues);
             _effectHandler = new EffectHandler(this, _runningEffects, _effectQueues);
+            _actionHandler = new ActionHandler(this, _actionTemplates, _runningActions, _actionQueues);
         }
 
         
@@ -47,7 +60,7 @@ namespace ActionBuilder.Runtime
             _effectHandler.UpdateEffects();
             _actionHandler.UpdateActions(_effectHandler);
             
-            _poolController.ProcessDestroyQueue();
+            _pooler.ProcessDestroyQueue();
         }
         
         
@@ -65,13 +78,13 @@ namespace ActionBuilder.Runtime
         
         public ActionBase GetPooledAction(int hash)
         {
-            return _poolController.GetPooledObject<ActionBase>(hash);
+            return _pooler.GetPooledObject<ActionBase>(hash);
         }
 
         
         public void EnqueueForDestroy(ExecutableBase target)
         {
-            _poolController.PushObjectToPool(target);
+            _pooler.PushObjectToPool(target);
         }
 
         
@@ -184,7 +197,7 @@ namespace ActionBuilder.Runtime
             _runningActions.Clear();
             _actionTemplates.Clear();
             _runningEffects.Clear();
-            _poolController.ClearPool();
+            _pooler.ClearPool();
             _effectQueues.Item1.Clear();
             _effectQueues.Item2.Clear();
             _actionQueues.Item1.Clear();
