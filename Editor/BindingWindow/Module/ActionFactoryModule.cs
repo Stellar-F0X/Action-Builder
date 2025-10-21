@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using ActionBuilder.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -29,15 +30,14 @@ namespace ActionBuilder.Tool
                 AssetDatabase.CreateFolder(resourcesRoot, "Actions");
             }
             
-            createdObject.name = type.Name;
             
-            string assetPath = AssetDatabase.GenerateUniqueAssetPath($"{actionsFolder}/{createdObject.name}.asset");
+            string assetPath = AssetDatabase.GenerateUniqueAssetPath($"{actionsFolder}/{type.Name}.asset");
             
             AssetDatabase.CreateAsset(createdObject, assetPath);
-            
-            
             ActionBase actionBase = createdObject as ActionBase;
             Assert.IsNotNull(actionBase);
+            
+            actionBase.name = Path.GetFileNameWithoutExtension(assetPath);
             actionBase.OnCreate();
             
             EditorUtility.SetDirty(actionBase);

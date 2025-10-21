@@ -1,4 +1,5 @@
 using ActionBuilder.Runtime;
+using NUnit.Framework.Internal.Commands;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -10,8 +11,6 @@ namespace ActionBuilder.Tool
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            property.serializedObject.Update();
-            
             SerializedProperty iconProp = property.FindPropertyRelative("icon");
             SerializedProperty nameProp = property.FindPropertyRelative("name");
             SerializedProperty tagProp = property.FindPropertyRelative("tag");
@@ -64,6 +63,7 @@ namespace ActionBuilder.Tool
             GUILayoutOption widthOption = GUILayout.Width(60);
 
             using EditorGUI.ChangeCheckScope check = new EditorGUI.ChangeCheckScope();
+            
             sprite = EditorGUILayout.ObjectField(GUIContent.none, sprite, typeof(Sprite), false, widthOption);
 
             if (check.changed)
@@ -89,6 +89,15 @@ namespace ActionBuilder.Tool
             }
             
             Object target = property.serializedObject.targetObject;
+
+            if (AssetDatabase.IsMainAsset(target) == false)
+            {
+                target.name = nameProp.stringValue;
+                hashProp.intValue = Animator.StringToHash(target.name);
+                
+                goto skipRenameMainAsset;
+            }
+            
             property.serializedObject.ApplyModifiedProperties();
             
             string newName = nameProp.stringValue;
@@ -110,6 +119,8 @@ namespace ActionBuilder.Tool
                 nameProp.stringValue = previousName;
                 Debug.LogError($"Rename failed: {message}");
             }
+            
+            skipRenameMainAsset:
             
             property.serializedObject.ApplyModifiedProperties();
             ActionBuildEditor.Instance.UpdateListView();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Runtime
@@ -12,14 +13,13 @@ namespace ActionBuilder.Runtime
         [SerializeField]
         private List<ActionBase> _actions = new List<ActionBase>();
 
-
-
-        private readonly ActionDictionary _registeredActionPool = new ActionDictionary();
+        private readonly ActionDictionary _actionTemplates = new ActionDictionary();
+        
+        
 
         private readonly List<ActionBase> _runningActions = new List<ActionBase>();
 
         private readonly Dictionary<int, List<EffectBase>> _runningEffects = new Dictionary<int, List<EffectBase>>();
-
 
 
 
@@ -31,17 +31,22 @@ namespace ActionBuilder.Runtime
 
         private readonly List<IPoolable> _objectPool = new List<IPoolable>();
 
-        private readonly Queue<ScriptableObject> _disableQueue = new Queue<ScriptableObject>();
+        private readonly Queue<ExecutableBase> _disableQueue = new Queue<ExecutableBase>();
 
 
 
         private void Awake()
         {
+            Assert.IsNotNull(_actionTemplates);
+            
+            Assert.IsNotNull(_actions);
+            
+            
             for (int index = 0; index < _actions.Count; ++index)
             {
                 ActionBase clone = Object.Instantiate(_actions[index]);
                 clone.Initialize(this);
-                _registeredActionPool.Add(clone);
+                _actionTemplates.Add(clone);
             }
         }
 
@@ -72,7 +77,7 @@ namespace ActionBuilder.Runtime
 
         public bool HasAction(string actionName, bool searchInRunningActions = false)
         {
-            if (_registeredActionPool.TryGetValue(actionName, out ActionBase targetAction) == false)
+            if (_actionTemplates.TryGetValue(actionName, out ActionBase targetAction) == false)
             {
                 return false;
             }
@@ -91,7 +96,7 @@ namespace ActionBuilder.Runtime
 
         public bool HasAction(string actionName, out ActionBase action, bool searchInRunningActions = false)
         {
-            if (_registeredActionPool.TryGetValue(actionName, out action) == false)
+            if (_actionTemplates.TryGetValue(actionName, out action) == false)
             {
                 return false;
             }
@@ -151,7 +156,7 @@ namespace ActionBuilder.Runtime
             }
             else
             {
-                Debug.LogWarning($"{action.name}을 시작할 수 없습니다.");
+                Debug.LogWarning($"{((Object)action).name}을 시작할 수 없습니다.");
             }
         }
 
@@ -498,7 +503,7 @@ namespace ActionBuilder.Runtime
         {
             while (_disableQueue.Count > 0)
             {
-                ScriptableObject destroyTarget = _disableQueue.Dequeue();
+                ExecutableBase destroyTarget = _disableQueue.Dequeue();
 
                 if (destroyTarget == null)
                 {
@@ -528,7 +533,7 @@ namespace ActionBuilder.Runtime
             }
 
             _runningActions.Clear();
-            _registeredActionPool.Clear();
+            _actionTemplates.Clear();
             _runningEffects.Clear();
             _disableQueue.Clear();
             _effectQueues.Item1.Clear();

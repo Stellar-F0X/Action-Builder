@@ -23,7 +23,7 @@ namespace ActionBuilder.Runtime
             {
                 case SpawnAnchorMode.InternalTransform:
                 {
-                    return effect.action.controller.transform.FindAllWithTag(trackingTag).FirstOrDefault(transform => transform.name == objectName);
+                    return effect.controller.transform.FindAllWithTag(trackingTag).FirstOrDefault(transform => transform.name == objectName);
                 }
 
                 case SpawnAnchorMode.ExternalTarget:

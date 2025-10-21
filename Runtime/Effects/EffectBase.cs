@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ActionBuilder.Runtime
 {
-    public abstract class EffectBase : ScriptableObject
+    public abstract class EffectBase : ExecutableBase
     {
         public event Action<EffectBase> onBeforeApply;
 
@@ -16,13 +16,8 @@ namespace ActionBuilder.Runtime
         public event Action<EffectBase> onAfterRelease;
 
 
-        public string effectName;
-
-
         [HideInInspector]
         public bool enable = true;
-
-        public string description;
         public bool autoRelease = true;
 
 
@@ -42,24 +37,14 @@ namespace ActionBuilder.Runtime
         [SerializeField, HideInInspector]
         internal bool isExpanded = true;
 #endif
-
-
+        
         private bool _released;
-
-
         private int _currentApplyCount;
-
-
-        private float _elapsedTime;
-
-
         private float _lastApplyTime;
 
 
         [SerializeReference, HideInInspector]
         private ActionBase _action;
-
-
         private Coroutine _autoApplyCoroutine;
 
 
@@ -74,29 +59,9 @@ namespace ActionBuilder.Runtime
             internal set { _action = value; }
         }
 
-        public Transform transform
-        {
-            get { return _action?.controller?.transform; }
-        }
-
-        public GameObject gameObject
-        {
-            get { return _action?.controller?.gameObject; }
-        }
-
-        public bool isApplyComplete
-        {
-            get { return _currentApplyCount == targetApplyCount; }
-        }
-
         public bool isReleased
         {
             get { return _released; }
-        }
-
-        public float elapsedTime
-        {
-            get { return _elapsedTime; }
         }
 
         public float duration
@@ -126,10 +91,15 @@ namespace ActionBuilder.Runtime
 
         public virtual bool canApply
         {
-            get { return _currentApplyCount == 0 || (_lastApplyTime + executionData.applyInterval) < _elapsedTime; }
+            get { return this.CanApplyEffect(); }
         }
 
-        public virtual MinMax durationLimit
+#endregion
+
+        
+#region Internal Properties
+
+        protected internal virtual MinMax durationLimit
         {
             get { return new MinMax(float.MinValue, float.MaxValue); }
         }
@@ -145,7 +115,7 @@ namespace ActionBuilder.Runtime
             {
                 _action.controller.StopCoroutine(_autoApplyCoroutine);
             }
-            
+
             _released = false;
             _elapsedTime = 0;
             _lastApplyTime = 0;
@@ -164,13 +134,13 @@ namespace ActionBuilder.Runtime
                 Debug.LogWarning($"[{this.name}] ManualApply is not allowed when applyPolicy is Auto");
                 return;
             }
-            
+
             if (this.enable == false)
             {
                 return;
             }
 
-            if (this.isApplyComplete)
+            if (_currentApplyCount == targetApplyCount)
             {
                 return;
             }
@@ -245,11 +215,7 @@ namespace ActionBuilder.Runtime
 
             _elapsedTime += Time.deltaTime;
 
-            if (applyPolicy == ApplyPolicy.Auto && _autoApplyCoroutine == null)
-            {
-                _autoApplyCoroutine = action.controller.StartCoroutine(this.AutoApply());
-            }
-
+            this.StartAutoApplyLoop();
             this.OnUpdate(Time.deltaTime);
         }
 
@@ -269,14 +235,53 @@ namespace ActionBuilder.Runtime
                 _action.controller.StopCoroutine(_autoApplyCoroutine);
                 _autoApplyCoroutine = null;
             }
-            
+
             if (this.autoRelease)
             {
                 this.Release(forceRelease: true);
             }
 
             this.OnCanceled();
-            this.action?.controller?.UnregisterEffectFromRunningQueue(this);
+            this.controller?.UnregisterEffectFromRunningQueue(this);
+        }
+        
+        
+        
+        private void StartAutoApplyLoop()
+        {
+            if (applyPolicy != ApplyPolicy.Auto || _autoApplyCoroutine is not null)
+            {
+                return;
+            }
+
+            _autoApplyCoroutine = controller.StartCoroutine(this.AutoApply());
+        }
+
+
+
+        private bool CanApplyEffect()
+        {
+            //적용이 목표로 설정한 적용 수보다 많으면 안되므로 False를 반환.
+            if (currentApplyCount >= targetApplyCount)
+            {
+                return false;
+            }
+
+            //첫 적용 이전이라면 시작한 적도 없는데, 다음 적용을 위한 쿨타임이 있으면 안되므로 즉각 True 반환. 
+            if (currentApplyCount == 0)
+            {
+                return true;
+            }
+
+            //첫 적용 이후라면 빈도 시간에 따라 True를 반환.
+            if ((_lastApplyTime + executionData.applyInterval) < _elapsedTime)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
 

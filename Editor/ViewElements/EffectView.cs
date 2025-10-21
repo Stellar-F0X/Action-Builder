@@ -63,18 +63,18 @@ namespace ActionBuilder.Tool
             _foldout.UnregisterValueChangedCallback(this.UpdateEffectExpansion);
             _foldout.RegisterValueChangedCallback(this.UpdateEffectExpansion);
 
-            if (string.IsNullOrEmpty(newEffect.effectName))
+            if (string.IsNullOrEmpty(newEffect.name))
             {
                 _foldout.text = property.displayName;
             }
             else
             {
-                _foldout.text = newEffect.effectName;
+                _foldout.text = newEffect.name;
             }
 
             _foldout.SetValueWithoutNotify(newEffect.isExpanded);
             
-            SerializedProperty nameProp = _serializedObject.FindProperty("effectName");
+            SerializedProperty nameProp = _serializedObject.FindProperty("_identifyData.name");
             Assert.IsNotNull(nameProp);
 
             _nameLabel.Unbind();
@@ -146,7 +146,7 @@ namespace ActionBuilder.Tool
 
         private void ChangeEffectName(SerializedProperty prop)
         {
-            _effect.effectName = prop.stringValue;
+            _effect.name = prop.stringValue;
             _foldout.text = prop.stringValue;
             EditorUtility.SetDirty(effectObject);
         }

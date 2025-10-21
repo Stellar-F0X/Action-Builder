@@ -110,7 +110,7 @@ namespace ActionBuilder.Tool
             Label nameLabel = visualElement.Q<Label>();
 
             ActionBase action = _objectList[index] as ActionBase;
-            nameLabel.text = action.actionName;
+            nameLabel.text = action.name;
             icon.sprite = action.icon;
 
             visualElement.tooltip = action.description;

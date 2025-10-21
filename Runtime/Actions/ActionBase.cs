@@ -5,19 +5,19 @@ using Object = UnityEngine.Object;
 
 namespace ActionBuilder.Runtime
 {
-    public abstract class ActionBase : ScriptableObject, IPoolable
+    public abstract class ActionBase : ExecutableBase, IPoolable
     {
         public event Action<ActionBase> onStarted;
+        
         public event Action<ActionBase> onEnded;
+        
         public event Action<ActionBase> onPaused;
+        
         public event Action<ActionBase> onResumed;
+        
         public event Action<ActionBase> onCancelled;
 
-
-
-        [SerializeField, Space(-15)]
-        protected IdentifyData _identifyData;
-
+        
         [Space(5)]
         public ActionDurationData durationData;
 
@@ -28,10 +28,6 @@ namespace ActionBuilder.Runtime
 
         [SerializeReference, HideInInspector]
         protected List<EffectBase> _effectTemplates;
-
-
-        /// <summary> Action 동작 경과 시간. </summary>
-        private float _elapsedTime;
 
 
         /// <summary> 마지막으로 실행이 종료되었던 시간. </summary>
@@ -48,9 +44,7 @@ namespace ActionBuilder.Runtime
 
         /// <summary> 현재 동작 중인 상태. </summary>
         private ActionState _currentState;
-
-
-
+        
 
 
 #region Properties
@@ -60,33 +54,15 @@ namespace ActionBuilder.Runtime
             get { return _lastQuitTime > float.Epsilon && (_lastQuitTime + durationData.cooldownTime) > Time.time; }
         }
 
-
         public ActionState currentState
         {
             get { return _currentState; }
         }
 
-
         public bool isActive
         {
             get { return _currentState is ActionState.Playing or ActionState.Paused; }
         }
-
-        public ActionController controller
-        {
-            get;
-            set;
-        }
-        public Transform transform
-        {
-            get { return this.controller.transform; }
-        }
-
-        public GameObject gameObject
-        {
-            get { return this.controller.gameObject; }
-        }
-
 
         public List<GameObject> targets
         {
@@ -94,37 +70,9 @@ namespace ActionBuilder.Runtime
             set;
         }
 
-
-        public Sprite icon
-        {
-            get { return _identifyData.icon; }
-        }
-
-        public string actionName
-        {
-            get { return _identifyData.name; }
-
-            private set { _identifyData.name = value; }
-        }
-        
-        public string description
-        {
-            get { return _identifyData.description; }
-        }
-
-        public int hash
-        {
-            get { return _identifyData.hash; }
-        }
-
         public float duration
         {
             get { return durationData.duration; }
-        }
-
-        public string tag
-        {
-            get { return _identifyData.tag; }
         }
 
         public bool isReadyInPool
@@ -134,6 +82,7 @@ namespace ActionBuilder.Runtime
 
 #endregion
 
+        
 
 #region Internal Properties
 
@@ -170,8 +119,7 @@ namespace ActionBuilder.Runtime
         {
             this.controller = actionOwner;
             this.name = name.Replace("(Clone)", "");
-            this.actionName = name;
-
+            
             this.OnInitialized();
         }
 
@@ -306,7 +254,7 @@ namespace ActionBuilder.Runtime
                 EffectBase clonedEffect = Object.Instantiate(effect);
 
                 clonedEffect.name = clonedEffect.name.Replace("(Clone)", "");
-                clonedEffect.effectName = clonedEffect.name;
+                clonedEffect.controller = this.controller;
                 clonedEffect.action = this;
 
                 _createdEffectCount++;
@@ -346,7 +294,7 @@ namespace ActionBuilder.Runtime
 
         public override string ToString()
         {
-            return $"{typeof(ActionBase)}: {actionName} (State: {_currentState}, Cooldown: {isOnCooldown}, Elapsed: {_elapsedTime:F2}s)";
+            return $"{typeof(ActionBase)}: {name} (State: {_currentState}, Cooldown: {isOnCooldown}, Elapsed: {_elapsedTime:F2}s)";
         }
 
 

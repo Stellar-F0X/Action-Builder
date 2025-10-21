@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ActionBuilder.Runtime
 {
@@ -49,7 +50,7 @@ namespace ActionBuilder.Runtime
 
         public void Add(ActionBase action)
         {
-            _actionsByName[action.name] = action;
+            _actionsByName[((Object)action).name] = action;
             _actions[action.hash] = action;
         }
 
@@ -78,7 +79,7 @@ namespace ActionBuilder.Runtime
 
         public bool Remove(ActionBase action)
         {
-            return _actionsByName.Remove(action.name) && _actions.Remove(action.hash);
+            return _actionsByName.Remove(((Object)action).name) && _actions.Remove(action.hash);
         }
 
 
@@ -86,7 +87,7 @@ namespace ActionBuilder.Runtime
         {
             if (_actions.TryGetValue(actionHash, out ActionBase action))
             {
-                _actionsByName.Remove(action.name);
+                _actionsByName.Remove(((Object)action).name);
                 _actions.Remove(actionHash);
                 return true;
             }
@@ -122,7 +123,7 @@ namespace ActionBuilder.Runtime
 
         public bool ContainsKey(ActionBase action)
         {
-            return _actions.ContainsKey(action.hash) || _actionsByName.ContainsKey(action.actionName);
+            return _actions.ContainsKey(action.hash) || _actionsByName.ContainsKey(action.name);
         }
 
 
@@ -149,7 +150,7 @@ namespace ActionBuilder.Runtime
         {
             foreach (KeyValuePair<int, ActionBase> pair in _actions)
             {
-                yield return new DoubleKeyValuePair<int, string, ActionBase>(pair.Key, pair.Value.name, pair.Value); 
+                yield return new DoubleKeyValuePair<int, string, ActionBase>(pair.Key, ((Object)pair.Value).name, pair.Value); 
             }
         }
 
