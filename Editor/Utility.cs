@@ -1,9 +1,10 @@
 using System;
 using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 using UObject = UnityEngine.Object;
 
-namespace StatController.Tool
+namespace ActionBuilder.Tool
 {
     public static class Utility
     {
@@ -48,7 +49,7 @@ namespace StatController.Tool
                 return param;
             }
 
-            throw new StatKeyCastException($"{typeof(StatSetDrawer)}: Failed to convert value '{param}' to stat key of type '{type.FullName}'.");
+            throw new StatKeyCastException($"{typeof(StatSetDrawer)}: Failed to convert value '{param}' to stat statKey of type '{type.FullName}'.");
         }
 
 
@@ -78,6 +79,24 @@ namespace StatController.Tool
             JsonUtility.FromJsonOverwrite(json, newObject);
             param = newObject;
             return true;
+        }
+        
+        
+        public static float GetTotalHeight(this SerializedObject serializedObject)
+        {
+            float totalHeight = 0f;
+
+            SerializedProperty property = serializedObject.GetIterator();
+            bool enterChildren = true;
+
+            while (property.NextVisible(enterChildren))
+            {
+                enterChildren = false;
+                totalHeight += EditorGUI.GetPropertyHeight(property, includeChildren: true);
+                totalHeight += EditorGUIUtility.standardVerticalSpacing;
+            }
+
+            return totalHeight;
         }
     }
 }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace StatController.Tool
+namespace ActionBuilder.Tool
 {
     /// <summary> 클래스는 BindingWindow를 구성하기 위한 빌더 패턴을 제공합니다. </summary>
     internal class BindingWindowBuilder

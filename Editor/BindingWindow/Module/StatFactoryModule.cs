@@ -1,9 +1,9 @@
 using System;
+using ActionBuilder.Runtime;
 using UnityEngine;
-using StatController.Runtime;
 using UnityEngine.Assertions;
 
-namespace StatController.Tool
+namespace ActionBuilder.Tool
 {
     internal class StatFactoryModule : FactoryModule<Stat>
     {

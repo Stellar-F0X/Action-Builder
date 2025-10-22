@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace StatController.Runtime
+namespace ActionBuilder.Runtime
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class ReadOnlyAttribute : PropertyAttribute

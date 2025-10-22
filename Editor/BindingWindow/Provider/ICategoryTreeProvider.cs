@@ -1,6 +1,6 @@
 using UnityEditor.Experimental.GraphView;
 
-namespace StatController.Tool
+namespace ActionBuilder.Tool
 {
     internal interface ICategoryTreeProvider
     {

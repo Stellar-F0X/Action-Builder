@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-namespace StatController.Tool
+namespace ActionBuilder.Tool
 {
     /// <summary> BindingWindow 클래스는 그래프 노드 생성과 관련된 창을 제공합니다. </summary>
     internal sealed class BindingWindow : ScriptableObject, ISearchWindowProvider

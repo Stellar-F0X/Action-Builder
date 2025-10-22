@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace StatController.Tool
+namespace ActionBuilder.Tool
 {
     internal abstract class FactoryModule
     {

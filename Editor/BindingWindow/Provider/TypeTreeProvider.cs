@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-namespace StatController.Tool
+namespace ActionBuilder.Tool
 {
     internal class TypeTreeProvider : ICategoryTreeProvider
     {
