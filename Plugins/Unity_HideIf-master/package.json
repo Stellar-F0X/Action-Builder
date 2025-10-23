@@ -1,0 +1,18 @@
+{
+  "name": "com.baste-rain.unity-hideif",
+  "displayName": "Unity HideIf",
+  "version": "1.0.0",
+  "unity": "2020.3",
+  "description": "Simple utility attribute set for Unity to conditionally hide fields in the Inspector.",
+  "keywords": [
+    "HideIf",
+    "Inspector",
+    "Utility",
+    "Attribute"
+  ],
+  "author": {
+    "name": "Baste-RainGames",
+    "url": "https://github.com/Baste-RainGames"
+  },
+  "license": "MIT"
+}

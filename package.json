@@ -1,15 +1,19 @@
-	{
-	  "name": "com.stellarf0x.actionbuilder",
-	  "version": "1.0.0",
-	  "displayName": "Action Builder",
-	  "description": ".",
-	  "author": {
-	    "name": "Stellar-F0X"
-	  },
-	  "keywords": [
-      "Stat", 
-      "stat Controller", 
-      "stat System", 
-      "Action Builder"
-	  ]
-	}
+{
+  "name": "com.stellarf0x.actionbuilder",
+  "version": "1.0.0",
+  "displayName": "Action Builder",
+  "description": ".",
+  "author": {
+    "name": "Stellar-F0X"
+  },
+  "keywords": [
+    "Stat",
+    "Stat Controller",
+    "Stat System",
+    "Action Builder"
+  ],
+  "dependencies": {
+    "com.baste-rain.unity-hideif": "https://github.com/Baste-RainGames/Unity_HideIf.git",
+    "com.mackysoft.serializereferenceextensions": "https://github.com/mackysoft/Unity-SerializeReferenceExtensions.git"
+  }
+}
