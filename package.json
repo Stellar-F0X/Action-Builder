@@ -11,8 +11,5 @@
     "Stat Controller",
     "Stat System",
     "Action Builder"
-  ],
-  "dependencies": {
-    "com.mackysoft.serializereferenceextensions": "1.6.1"
-  }
+  ]
 }
