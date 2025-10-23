@@ -1,14 +1,15 @@
 	{
-	  "name": "com.stellarf0x.statcontroller",
+	  "name": "com.stellarf0x.actionbuilder",
 	  "version": "1.0.0",
-	  "displayName": "Stat Controller",
-	  "description": "Control Stats",
+	  "displayName": "Action Builder",
+	  "description": ".",
 	  "author": {
 	    "name": "Stellar-F0X"
 	  },
 	  "keywords": [
-        "Stat",
-		"stat Controller",
-		"stat System"
+      "Stat", 
+      "stat Controller", 
+      "stat System", 
+      "Action Builder"
 	  ]
 	}
