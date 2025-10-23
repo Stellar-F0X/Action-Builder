@@ -13,7 +13,6 @@
     "Action Builder"
   ],
   "dependencies": {
-    "com.baste-rain.unity-hideif": "https://github.com/Baste-RainGames/Unity_HideIf.git",
-    "com.mackysoft.serializereferenceextensions": "https://github.com/mackysoft/Unity-SerializeReferenceExtensions.git"
+    "com.mackysoft.serializereferenceextensions": "1.6.1"
   }
 }
