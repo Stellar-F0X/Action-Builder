@@ -9,23 +9,18 @@ namespace ActionBuilder.Runtime
     public class StatController : MonoBehaviour
     {
         private readonly Dictionary<string, Stat> _statsByStringKey = new Dictionary<string, Stat>();
-
-        [HideIf("_debug", true)]
-        public int aa;
-
-
+        
+        
         [SerializeReference, ReadOnly(true)]
         private StatSet _statSetTemplate;
 
-
+        
         [SerializeField]
         private bool _debug;
-
-
         private Type _statsSetKeyType;
 
 
-        [SerializeReference]
+        [SerializeReference, HideInInspector]
         private protected StatSetInstance _runtimeStat;
 
 
